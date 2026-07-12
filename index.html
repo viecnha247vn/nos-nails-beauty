@@ -29,16 +29,39 @@ button,input,textarea{font:inherit;color:inherit}
 [hidden]{display:none!important}
 .wrap{max-width:720px;margin:0 auto;padding:0 16px}
 
-/* ---------- Topp ---------- */
-.top{background:var(--card);border-bottom:1px solid var(--line)}
-.top .wrap{display:flex;align-items:center;gap:12px;padding:12px 16px}
-.top .name{font-weight:700;font-size:16px;flex:1;min-width:0}
-.langs{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.langs button{background:#fff;border:0;padding:6px 10px;font-size:12px;font-weight:600;color:var(--grey);cursor:pointer}
-.langs button.on{background:var(--brick);color:#fff}
+/* ---------- Språkval ---------- */
+.head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+.langs{flex:none;display:flex;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.30);
+  border-radius:9px;overflow:hidden;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}
+.langs button{background:none;border:0;padding:7px 13px;font-size:13px;font-weight:600;
+  color:rgba(255,255,255,.8);cursor:pointer}
+.langs button:hover{background:rgba(255,255,255,.12)}
+.langs button.on{background:#fff;color:var(--brick)}
 
 /* ---------- Salongsinfo ---------- */
-.info{background:linear-gradient(135deg,var(--brick) 0%,var(--brick-d) 55%,#59211C 100%);color:#fff;padding:22px 0 24px}
+.info{
+  position:relative;overflow:hidden;color:#fff;padding:24px 0 26px;
+  background:
+    radial-gradient(120% 90% at 12% 0%, rgba(255,255,255,.20) 0%, rgba(255,255,255,0) 45%),
+    radial-gradient(90% 70% at 95% 105%, rgba(255,190,170,.18) 0%, rgba(255,190,170,0) 55%),
+    linear-gradient(135deg,#A24A3F 0%,var(--brick) 38%,var(--brick-d) 72%,#54201B 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.30), inset 0 -1px 0 rgba(0,0,0,.18),
+             0 8px 24px rgba(140,58,49,.22);
+}
+/* vệt sáng tĩnh kiểu mặt gương tráng */
+.info:before{
+  content:"";position:absolute;top:-40%;left:8%;width:42%;height:190%;
+  background:linear-gradient(100deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.10) 38%,rgba(255,255,255,.22) 50%,rgba(255,255,255,.08) 62%,rgba(255,255,255,0) 100%);
+  transform:rotate(14deg);pointer-events:none;
+}
+/* mép sáng dưới đáy như viền kính */
+.info:after{
+  content:"";position:absolute;left:0;right:0;bottom:0;height:38%;pointer-events:none;
+  background:linear-gradient(to top,rgba(255,255,255,.10),rgba(255,255,255,0));
+}
+.info .wrap{position:relative;z-index:1}
+.info h1{text-shadow:0 1px 2px rgba(84,32,27,.35)}
 .info h1{font-size:22px;font-weight:700;letter-spacing:-.01em}
 .info .rows{margin-top:12px;display:grid;gap:5px;font-size:14px;color:rgba(255,255,255,.85)}
 .info .rows div{display:flex;gap:9px}
@@ -47,14 +70,18 @@ button,input,textarea{font:inherit;color:inherit}
 .hlink{background:none;border:0;color:rgba(255,255,255,.85);font-size:13px;font-weight:600;cursor:pointer;
   text-decoration:underline;text-underline-offset:3px;padding:4px 0}
 .hlink:hover{color:#fff}
-.htable{margin-top:12px;background:rgba(255,255,255,.12);border-radius:10px;padding:10px 14px;font-size:14px;
-  max-width:340px}
+.htable{margin-top:12px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.26);
+  border-radius:12px;padding:10px 14px;font-size:14px;max-width:340px;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.28), 0 6px 18px rgba(84,32,27,.18)}
 .htable div{display:flex;justify-content:space-between;gap:16px;padding:4px 0;color:rgba(255,255,255,.85)}
 .htable div + div{border-top:1px solid rgba(255,255,255,.12)}
 .htable div.now{color:#fff;font-weight:700}
 .htable div.shut span:last-child{color:rgba(255,255,255,.55)}
-.badge{display:inline-flex;align-items:center;gap:6px;margin-top:14px;font-size:13px;font-weight:600;
-  background:rgba(255,255,255,.15);padding:5px 12px;border-radius:99px}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;
+  background:rgba(255,255,255,.18);padding:6px 13px;border-radius:99px;
+  border:1px solid rgba(255,255,255,.3);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
 .badge i{width:7px;height:7px;border-radius:50%;background:#5FD3A3;font-style:normal;box-shadow:0 0 0 3px rgba(95,211,163,.25)}
 .badge.shut i{background:#E8B4AC;box-shadow:none}
 
@@ -90,6 +117,39 @@ h2{font-size:17px;font-weight:700;margin:22px 0 10px}
 .chip.fast:hover{background:#DDF0EA}
 
 /* ---------- Datum ---------- */
+.datehead{display:flex;align-items:center;gap:6px;margin-bottom:2px}
+.dmonth{flex:1;font-size:14px;font-weight:600;text-transform:capitalize}
+.dnav{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--card);
+  font-size:16px;font-weight:700;cursor:pointer;line-height:1}
+.dnav:hover:not(:disabled){border-color:var(--brick);color:var(--brick)}
+.dnav:disabled{opacity:.35;cursor:not-allowed}
+.calbtn{border:1px solid var(--brick);background:#fff;color:var(--brick);border-radius:8px;padding:7px 12px;
+  font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.calbtn:hover{background:var(--brick-l)}
+
+/* lịch tháng */
+.cmask{position:fixed;inset:0;background:rgba(31,31,31,.55);display:none;align-items:center;justify-content:center;
+  z-index:40;padding:16px}
+.cmask.on{display:flex}
+.cbox{background:#fff;border-radius:14px;width:100%;max-width:400px;padding:16px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.chead{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.chead b{flex:1;text-align:center;font-size:16px;text-transform:capitalize}
+.cclose{border:0;background:none;font-size:18px;color:var(--grey);cursor:pointer;padding:4px 6px}
+.cgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.cgrid.head{margin-bottom:5px}
+.cgrid.head span{text-align:center;font-size:11px;font-weight:700;color:var(--grey);text-transform:uppercase}
+.cday{aspect-ratio:1;border:1px solid var(--line);background:#fff;border-radius:9px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:14px;font-weight:600}
+.cday i{width:5px;height:5px;border-radius:50%;background:var(--teal);font-style:normal}
+.cday:hover:not(:disabled){border-color:var(--brick);background:var(--brick-l)}
+.cday:disabled{opacity:.3;cursor:not-allowed;background:var(--bg)}
+.cday.sel{background:var(--brick);border-color:var(--brick);color:#fff}
+.cday.sel i{background:#fff}
+.cday.empty{border:0;background:none;cursor:default}
+.clegend{display:flex;align-items:center;gap:6px;margin-top:12px;font-size:12px;color:var(--grey);flex-wrap:wrap}
+.clegend i{width:7px;height:7px;border-radius:50%;font-style:normal;margin-left:6px}
+.clegend i.ok{background:var(--teal);margin-left:0}
+.clegend i.no{background:#D8D3D1}
 .datewrap{position:relative;margin-bottom:4px}
 .dates{display:flex;gap:8px;overflow-x:auto;padding:4px 0 10px;scrollbar-width:none}
 .dates::-webkit-scrollbar{display:none}
@@ -165,17 +225,14 @@ footer a{color:var(--brick)}
 </head>
 <body>
 
-<div class="top"><div class="wrap">
-  <div class="name" id="topName">N.O.S Nails Beauty AB</div>
-  <div class="langs">
-    <button data-lang="sv" class="on">SV</button>
-    <button data-lang="en">EN</button>
-    <button data-lang="vi">VI</button>
-  </div>
-</div></div>
-
 <div class="info"><div class="wrap">
-  <h1 id="salonName">N.O.S Nails Beauty AB</h1>
+  <div class="head">
+    <h1 id="salonName">N.O.S Nails Beauty AB</h1>
+    <div class="langs">
+      <button data-lang="sv" class="on">SV</button>
+      <button data-lang="en">EN</button>
+    </div>
+  </div>
   <div class="rows">
     <div><span>📍</span><span id="sAddr"></span></div>
     <div><span>📞</span><b id="sPhone"></b></div>
@@ -202,6 +259,12 @@ footer a{color:var(--brick)}
     <h2 data-t="h2">Välj tid</h2>
     <div class="chips" id="quick"></div>
     <div class="chips" id="staffFilter"></div>
+    <div class="datehead">
+      <button class="dnav" id="dPrev" aria-label="prev">‹</button>
+      <span class="dmonth" id="dMonth"></span>
+      <button class="dnav" id="dNext" aria-label="next">›</button>
+      <button class="calbtn" id="calBtn" data-t="calendar">📅 Välj datum</button>
+    </div>
     <div class="datewrap"><div class="dates" id="dates"></div></div>
     <p class="hint" data-t="tapHint">Tryck på en tid så går du direkt vidare.</p>
     <div id="times"></div>
@@ -245,6 +308,22 @@ footer a{color:var(--brick)}
   </div>
 </div>
 
+<!-- MODAL: KALENDER -->
+<div class="cmask" id="cmask">
+  <div class="cbox">
+    <div class="chead">
+      <button class="dnav" id="cPrev">‹</button>
+      <b id="cMonth"></b>
+      <button class="dnav" id="cNext">›</button>
+      <button class="cclose" id="cClose">✕</button>
+    </div>
+    <div class="cgrid head" id="cWd"></div>
+    <div class="cgrid" id="cDays"></div>
+    <p class="clegend"><i class="ok"></i><span data-t="legFree">Lediga tider</span>
+       <i class="no"></i><span data-t="legFull">Fullbokat / stängt</span></p>
+  </div>
+</div>
+
 <footer>
   <span id="fSalon"></span> · <span id="fSocial"></span><br>
   <a href="#" id="fCancel" data-t="cancelLink">Avboka en tid</a>
@@ -258,7 +337,7 @@ const T={
   fName:'Namn',fPhone:'Telefon',fMail:'E-post',fNote:'Meddelande (valfritt)',
   next:'Nästa',back:'Tillbaka',confirm:'Bekräfta bokning',pickSvc:'Välj en behandling',
   pick:'Välj',picked:'Vald',anyStaff:'Alla',open:'Öppet nu',closed:'Stängt nu',allHours:'Alla öppettider ▾',hideHours:'Dölj ▴',shut:'Stängt',todayIs:'Idag',
-  today:'Idag',tomorrow:'Imorgon',firstFree:'⚡ Första lediga',
+  today:'Idag',tomorrow:'Imorgon',firstFree:'⚡ Första lediga',calendar:'📅 Välj datum',legFree:'Lediga tider',legFull:'Fullbokat / stängt',
   morning:'Förmiddag',afternoon:'Eftermiddag',evening:'Kväll',
   tapHint:'Tryck på en tid så går du direkt vidare.',
   noTimes:'Inga lediga tider den dagen.',shutDay:'Stängt den dagen.',noneAtAll:'Inga lediga tider de närmaste veckorna. Ring oss gärna.',
@@ -271,7 +350,7 @@ const T={
   fName:'Name',fPhone:'Phone',fMail:'Email',fNote:'Message (optional)',
   next:'Next',back:'Back',confirm:'Confirm booking',pickSvc:'Choose a treatment',
   pick:'Select',picked:'Selected',anyStaff:'Anyone',open:'Open now',closed:'Closed now',allHours:'All opening hours ▾',hideHours:'Hide ▴',shut:'Closed',todayIs:'Today',
-  today:'Today',tomorrow:'Tomorrow',firstFree:'⚡ First available',
+  today:'Today',tomorrow:'Tomorrow',firstFree:'⚡ First available',calendar:'📅 Pick a date',legFree:'Free times',legFull:'Fully booked / closed',
   morning:'Morning',afternoon:'Afternoon',evening:'Evening',
   tapHint:'Tap a time and you go straight on.',
   noTimes:'No free times that day.',shutDay:'Closed that day.',noneAtAll:'No free times in the coming weeks. Please call us.',
@@ -284,7 +363,7 @@ const T={
   fName:'Họ tên',fPhone:'Điện thoại',fMail:'Email',fNote:'Ghi chú (không bắt buộc)',
   next:'Tiếp',back:'Quay lại',confirm:'Xác nhận đặt lịch',pickSvc:'Chọn dịch vụ',
   pick:'Chọn',picked:'Đã chọn',anyStaff:'Thợ nào cũng được',open:'Đang mở cửa',closed:'Đang đóng cửa',allHours:'Xem cả tuần ▾',hideHours:'Thu gọn ▴',shut:'Nghỉ',todayIs:'Hôm nay',
-  today:'Hôm nay',tomorrow:'Ngày mai',firstFree:'⚡ Giờ sớm nhất',
+  today:'Hôm nay',tomorrow:'Ngày mai',firstFree:'⚡ Giờ sớm nhất',calendar:'📅 Chọn ngày',legFree:'Còn chỗ',legFull:'Kín / nghỉ',
   morning:'Buổi sáng',afternoon:'Buổi chiều',evening:'Buổi tối',
   tapHint:'Bấm vào giờ là qua bước tiếp theo luôn.',
   noTimes:'Ngày này hết giờ trống.',shutDay:'Ngày này tiệm nghỉ.',noneAtAll:'Vài tuần tới đã kín. Anh/chị gọi tiệm giúp nhé.',
@@ -298,7 +377,7 @@ const CAT_COLOR=['#8C3A31','#7C4B72','#2E8B75','#E9A23B','#C96A5C','#4A6FA5'];
 const STAFF_COLOR=['#8C3A31','#2E8B75','#7C4B72','#E9A23B','#C96A5C','#4A6FA5'];
 const PART_COLOR={morning:'#E9A23B',afternoon:'#C96A5C',evening:'#7C4B72'};
 
-let lang='sv', cfg=null, step=1, days=[], slots=[];
+let lang='sv', cfg=null, step=1, days=[], slots=[], stripFrom=null, horizon='', calMonth=null, calDays=[];
 let sel={svc:null, staff:'any', date:null, time:null};
 
 const $=s=>document.querySelector(s);
@@ -328,10 +407,18 @@ document.querySelectorAll('.langs button').forEach(b=>b.onclick=()=>{
 });
 
 /* ---------- start ---------- */
+(function autoLang(){
+  const n=(navigator.language||'sv').slice(0,2).toLowerCase();
+  if(n!=='sv'){
+    lang='en';
+    document.querySelectorAll('.langs button').forEach(b=>b.classList.toggle('on',b.dataset.lang==='en'));
+    document.documentElement.lang='en';
+  }
+})();
+
 (async function(){
   try{
     cfg=await api('getConfig');
-    $('#topName').textContent=cfg.salon.name;
     $('#salonName').textContent=cfg.salon.name;
     $('#fSalon').textContent=cfg.salon.name;
     $('#fSocial').textContent=cfg.salon.social||'';
@@ -417,8 +504,9 @@ function drawServices(){
 
 async function chooseService(s){
   sel.svc=s; sel.staff='any'; sel.date=null; sel.time=null; slots=[]; days=[];
+  stripFrom=todayISO();
   step=2; render(); scrollTop();
-  await loadDays(true);
+  await loadDays(true, todayISO());
 }
 
 /* ---------- snabbval ---------- */
@@ -427,9 +515,13 @@ function drawQuick(){
   const q=$('#quick'); q.innerHTML='';
   const mk=(label,cls,fn)=>{ const b=document.createElement('button'); b.className='chip '+cls; b.textContent=label; b.onclick=fn; q.appendChild(b); };
   const tm=new Date(); tm.setDate(tm.getDate()+1);
-  mk(t('firstFree'),'fast',()=>{ const d=days.find(x=>x.count>0); if(d) pickDate(d.date); });
-  mk(t('today'),   sel.date===todayISO()?'sel':'', ()=>pickDate(todayISO()));
-  mk(t('tomorrow'),sel.date===iso(tm)?'sel':'',    ()=>pickDate(iso(tm)));
+  mk(t('firstFree'),'fast',async()=>{
+    let d=days.find(x=>x.count>0);
+    if(!d){ await loadDays(true, todayISO()); return; }
+    pickDate(d.date);
+  });
+  mk(t('today'),   sel.date===todayISO()?'sel':'', async()=>{ if(!days.some(x=>x.date===todayISO())) await loadDays(false,todayISO()); pickDate(todayISO()); });
+  mk(t('tomorrow'),sel.date===iso(tm)?'sel':'',    async()=>{ if(!days.some(x=>x.date===iso(tm))) await loadDays(false,iso(tm)); pickDate(iso(tm)); });
 }
 
 function drawStaff(){
@@ -439,7 +531,7 @@ function drawStaff(){
     const b=document.createElement('button');
     b.className='chip'+(sel.staff===id?' sel':'');
     b.innerHTML=(color?`<i style="background:${color}"></i>`:'')+label;
-    b.onclick=async()=>{ sel.staff=id; sel.time=null; drawStaff(); await loadDays(true); };
+    b.onclick=async()=>{ sel.staff=id; sel.time=null; drawStaff(); await loadDays(true, stripFrom||todayISO()); };
     f.appendChild(b);
   };
   mk('any',t('anyStaff'),'');
@@ -448,11 +540,13 @@ function drawStaff(){
 }
 
 /* ---------- dagar ---------- */
-async function loadDays(auto){
+async function loadDays(auto,from){
+  stripFrom = from || stripFrom || todayISO();
   $('#dates').innerHTML=`<div class="msg" style="width:100%">${t('loading')}</div>`;
   try{
-    const r=await api('getDays',{serviceId:sel.svc.id,staffId:sel.staff,days:21});
+    const r=await api('getDays',{serviceId:sel.svc.id,staffId:sel.staff,days:21,from:stripFrom});
     days=r.days||[];
+    horizon=r.horizon||'';
     drawDates();
     if(auto){
       const first=days.find(d=>d.count>0);
@@ -464,6 +558,11 @@ async function loadDays(auto){
 
 function drawDates(){
   if(step!==2||!days.length) return;
+  const a=new Date(days[0].date+'T12:00:00'), b=new Date(days[days.length-1].date+'T12:00:00');
+  const f=d=>d.toLocaleDateString(loc(),{month:'long',year:a.getFullYear()===b.getFullYear()?undefined:'numeric'});
+  $('#dMonth').textContent = a.getMonth()===b.getMonth() ? `${f(a)} ${a.getFullYear()}` : `${f(a)} – ${f(b)} ${b.getFullYear()}`;
+  $('#dPrev').disabled = stripFrom<=todayISO();
+  $('#dNext').disabled = !!horizon && days[days.length-1].date>=horizon;
   const box=$('#dates'); box.innerHTML='';
   days.forEach(dd=>{
     const d=new Date(dd.date+'T12:00:00');
@@ -477,6 +576,66 @@ function drawDates(){
   });
   const on=box.querySelector('.dbtn.sel');
   if(on) on.scrollIntoView({block:'nearest',inline:'center'});
+}
+
+$('#dPrev').onclick=()=>{ const f=addDays(stripFrom,-21); loadDays(false, f<todayISO()?todayISO():f); };
+$('#dNext').onclick=()=>{ loadDays(false, addDays(stripFrom,21)); };
+const addDays=(s,n)=>{ const d=new Date(s+'T12:00:00'); d.setDate(d.getDate()+n); return iso(d); };
+
+/* ---------- lịch tháng ---------- */
+$('#calBtn').onclick=()=>openCal();
+$('#cClose').onclick=()=>$('#cmask').classList.remove('on');
+$('#cmask').onclick=e=>{ if(e.target===$('#cmask')) $('#cmask').classList.remove('on'); };
+$('#cPrev').onclick=()=>shiftMonth(-1);
+$('#cNext').onclick=()=>shiftMonth(1);
+
+function monthStart(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
+function shiftMonth(n){ calMonth=new Date(calMonth.getFullYear(), calMonth.getMonth()+n, 1); loadCal(); }
+
+function openCal(){
+  calMonth = sel.date ? monthStart(new Date(sel.date+'T12:00:00')) : monthStart(new Date());
+  $('#cmask').classList.add('on');
+  loadCal();
+}
+
+async function loadCal(){
+  const y=calMonth.getFullYear(), m=calMonth.getMonth();
+  $('#cMonth').textContent = calMonth.toLocaleDateString(loc(),{month:'long',year:'numeric'});
+  const first=new Date(y,m,1), last=new Date(y,m+1,0);
+  const from = iso(first) < todayISO() ? todayISO() : iso(first);
+  $('#cDays').innerHTML=`<span style="grid-column:span 7;text-align:center;color:var(--grey);padding:20px 0">${t('loading')}</span>`;
+  const wdBox=$('#cWd'); wdBox.innerHTML='';
+  [1,2,3,4,5,6,0].forEach(w=>{ const s2=document.createElement('span'); s2.textContent=WD[lang][w]; wdBox.appendChild(s2); });
+
+  // giới hạn ‹ ›
+  $('#cPrev').disabled = (y===new Date().getFullYear() && m<=new Date().getMonth()) || new Date(y,m,1)<monthStart(new Date());
+  $('#cNext').disabled = !!horizon && iso(first) > horizon;
+
+  let data=[];
+  try{
+    const r=await api('getDays',{serviceId:sel.svc.id,staffId:sel.staff,from:from,days:last.getDate()});
+    data=r.days||[]; horizon=r.horizon||horizon;
+  }catch(e){ $('#cDays').innerHTML=`<span style="grid-column:span 7;color:var(--grey);text-align:center">${e.message}</span>`; return; }
+  calDays=data;
+
+  const box=$('#cDays'); box.innerHTML='';
+  const lead=(first.getDay()+6)%7;             // tuần bắt đầu từ thứ 2
+  for(let i=0;i<lead;i++){ const e2=document.createElement('div'); e2.className='cday empty'; box.appendChild(e2); }
+  for(let d=1;d<=last.getDate();d++){
+    const dt=new Date(y,m,d), key=iso(dt);
+    const info=calDays.find(x=>x.date===key);
+    const free=info?info.count:0;
+    const b=document.createElement('button');
+    b.className='cday'+(sel.date===key?' sel':'');
+    b.disabled = !info || free===0;
+    b.innerHTML=`${d}${free>0?'<i></i>':''}`;
+    b.onclick=async()=>{
+      $('#cmask').classList.remove('on');
+      await loadDays(false, key);      // dời dải ngày về ngày đã chọn
+      pickDate(key);
+    };
+    box.appendChild(b);
+  }
 }
 
 async function pickDate(d){
