@@ -59,7 +59,8 @@ select{-webkit-appearance:none;appearance:none;
 
 /* DAGSVY: schema-rutnät 15 min */
 .grid{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:80px}
-.ghead{display:grid;position:sticky;top:56px;z-index:12;background:#fff;border-bottom:1px solid var(--line)}
+.ghead{display:grid;position:sticky;top:var(--topH,56px);z-index:12;background:#fff;
+  border-bottom:2px solid var(--line);box-shadow:0 2px 6px rgba(42,31,29,.06)}
 .ghead .gh{padding:9px 8px;text-align:center;border-left:1px solid var(--line)}
 .ghead .gh:first-child{border-left:0}
 .ghead .gh b{display:flex;align-items:center;justify-content:center;gap:6px;font-size:14px}
@@ -67,11 +68,14 @@ select{-webkit-appearance:none;appearance:none;
 .ghead .gh small.free{color:#2E7D5B}
 .ghead .gh small.busy{color:var(--muted)}
 .gbody{display:grid;position:relative;overflow-x:auto}
-.gtime{border-right:1px solid var(--line);background:#FBF8F7}
-.gtime div{height:22px;font-size:10px;color:var(--muted);text-align:right;padding-right:6px;
-  border-top:1px solid transparent;line-height:1}
-.gtime div.hour{border-top:1px solid var(--line);font-weight:700;color:var(--ink);font-size:11px}
-.gcol{position:relative;border-left:1px solid var(--line)}
+.gtime{border-right:1px solid var(--line);background:#FBF8F7;padding-top:9px}
+.gtime div{height:22px;position:relative}
+.gtime div.hour{border-top:1px solid var(--line)}
+.gtime div.half{border-top:1px dashed #ECE5E2}
+.gtime div span{position:absolute;top:-8px;right:6px;font-size:10px;color:var(--muted);
+  background:#FBF8F7;padding:0 3px;line-height:1.5}
+.gtime div.hour span{font-weight:700;color:var(--ink);font-size:11px}
+.gcol{position:relative;border-left:1px solid var(--line);padding-top:9px}
 .cell{height:22px;border-top:1px dashed #F0EBE9;cursor:pointer}
 .cell.hour{border-top:1px solid var(--line)}
 .cell:hover{background:#FBF3F1}
@@ -85,7 +89,7 @@ select{-webkit-appearance:none;appearance:none;
 .ev.avbokad{opacity:.4}
 .ev.blk{background:repeating-linear-gradient(45deg,#9A8C87,#9A8C87 5px,#8A7A76 5px,#8A7A76 10px)!important;cursor:default}
 .ev.drag{opacity:.55;box-shadow:0 8px 20px rgba(42,31,29,.35);z-index:20}
-.nowline{position:absolute;left:0;right:0;height:2px;background:#D63B2F;z-index:9;pointer-events:none}
+.nowline{position:absolute;left:0;right:0;height:2px;background:#D63B2F;z-index:9;pointer-events:none;margin-top:9px}
 .nowline:before{content:"";position:absolute;left:-4px;top:-3px;width:8px;height:8px;border-radius:50%;background:#D63B2F}
 .ghint{font-size:12px;color:var(--muted);margin:0 0 10px 2px}
 
@@ -660,7 +664,14 @@ function dayHours(){
   return (cfg.hours||[]).find(h=>h.weekday===wd) || null;
 }
 
+function syncTopH(){
+  const h=document.querySelector('.top');
+  if(h) document.documentElement.style.setProperty('--topH', h.offsetHeight+'px');
+}
+window.addEventListener('resize',syncTopH);
+
 function paintGrid(){
+  syncTopH();
   const box=$('#grid'); box.innerHTML='';
   const h=dayHours();
   if(!h){ box.innerHTML=`<p class="none" style="padding:20px;text-align:center">${t('closedDay')}</p>`; return; }
@@ -703,8 +714,8 @@ function paintGrid(){
   for(let r=0;r<rows;r++){
     const m=open+r*step;
     const d=document.createElement('div');
-    if(m%60===0){ d.className='hour'; d.textContent=toHM(m); }
-    else if(m%30===0){ d.textContent=toHM(m); d.style.opacity='.55'; }
+    if(m%60===0){ d.className='hour'; d.innerHTML=`<span>${toHM(m)}</span>`; }
+    else if(m%30===0){ d.className='half'; d.innerHTML=`<span>${toHM(m)}</span>`; }
     times.appendChild(d);
   }
   body.appendChild(times);
