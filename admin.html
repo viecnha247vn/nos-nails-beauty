@@ -207,6 +207,16 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
 .presets{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
 .presets button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer}
 .presets button:hover{border-color:var(--ink)}
+.sheet{max-width:440px}
+.sheetbtns{display:grid;gap:8px;margin-top:4px}
+.sb{display:grid;grid-template-columns:38px 1fr;grid-template-rows:auto auto;column-gap:12px;align-items:center;
+  background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;text-align:left}
+.sb:hover{border-color:var(--brick);background:#FBF3F1}
+.sb i{grid-row:1/3;font-size:22px;font-style:normal;text-align:center}
+.sb b{font-size:15px;font-weight:600}
+.sb small{color:var(--muted);font-size:12px}
+.sb.book{border-color:var(--brick);background:#FBF3F1}
+.sb.book b{color:var(--brick)}
 .more{background:none;border:0;color:var(--brick);font-size:13px;font-weight:600;cursor:pointer;padding:4px 0;margin-bottom:6px}
 .more:hover{text-decoration:underline}
 .acts{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
@@ -327,6 +337,22 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
   </div>
 </div>
 
+<!-- ACTION SHEET: bấm vào ô trống -->
+<div class="mask" id="amask">
+  <div class="modal sheet">
+    <h2 id="aTitle">–</h2>
+    <div class="code" id="aSub"></div>
+    <div class="err" id="aErr" hidden></div>
+    <div class="sheetbtns">
+      <button class="sb book" id="aBook"><i>📅</i><b data-t="aBook">Ny bokning</b><small data-t="aBookSub">Lägg in en kund</small></button>
+      <button class="sb" id="aLunch"><i>🍽️</i><b data-t="aLunch">Lunch 60 min</b><small data-t="aLunchSub">Spärrar en timme</small></button>
+      <button class="sb" id="aPaus"><i>☕</i><b data-t="aPaus">Paus 30 min</b><small data-t="aPausSub">Kort rast</small></button>
+      <button class="sb" id="aBlock"><i>🔒</i><b data-t="aBlock">Spärra tid…</b><small data-t="aBlockSub">Välj längd och orsak</small></button>
+    </div>
+    <div class="acts"><button class="btn line" id="aClose" style="width:100%" data-t="close">Stäng</button></div>
+  </div>
+</div>
+
 <!-- MODAL: SPÄRRA TID -->
 <div class="mask" id="bmask">
   <div class="modal">
@@ -393,7 +419,10 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbxAgRKP5UWX9V8O4OqlJpAQ
 const T={
  sv:{loginH:'Adminpanel',loginP:'Ange adminnyckeln från fliken Settings.',loginB:'Logga in',logout:'Logga ut',
   tabDay:'Dag',tabWeek:'Vecka',tabSvc:'Tjänster',vGrid:'Schema',vList:'Lista',vCols:'Per tekniker',phoneCall:'Ring',
-  gridHint:'Dra en bokning till en annan tekniker eller tid. Tryck på en tom ruta för att boka.',
+  gridHint:'Dra en bokning till en annan tekniker eller tid. Tryck på en tom ruta för att boka eller spärra.',
+  aBook:'Ny bokning',aBookSub:'Lägg in en kund',aLunch:'Lunch 60 min',aLunchSub:'Spärrar en timme',
+  aPaus:'Paus 30 min',aPausSub:'Kort rast',aBlock:'Spärra tid…',aBlockSub:'Välj längd och orsak',
+  lunchWord:'Lunch',pausWord:'Paus',
   freeNow:'Ledig nu',nextFree:'Nästa',fullDay:'Fullbokad',closedDay:'Stängt denna dag.',moveAsk:'Flytta bokningen?',
   svcNote:'Ändringar syns direkt på bokningssidan.',newSvc:'+ Ny behandling',svcNew:'Ny behandling',svcEdit:'Ändra behandling',
   svcSub:'Namnet visas för kunden. Priset i kronor.',svcNameSv:'Namn (svenska)',svcNameEn:'Namn (engelska)',
@@ -412,7 +441,10 @@ const T={
   confirmCancel:'Avboka den här tiden?',confirmDelBlock:'Ta bort spärren?',week:'Vecka'},
  vi:{loginH:'Trang quản lý',loginP:'Nhập adminKey trong tab Settings.',loginB:'Đăng nhập',logout:'Thoát',
   tabDay:'Ngày',tabWeek:'Tuần',tabSvc:'Dịch vụ',vGrid:'Lịch',vList:'Danh sách',vCols:'Theo thợ',phoneCall:'Gọi',
-  gridHint:'Kéo lịch khách sang thợ khác hoặc giờ khác. Bấm ô trống để thêm lịch.',
+  gridHint:'Kéo lịch khách sang thợ khác hoặc giờ khác. Bấm ô trống để thêm lịch hoặc khoá giờ.',
+  aBook:'Thêm lịch khách',aBookSub:'Xếp một khách vào giờ này',aLunch:'Nghỉ trưa 60 phút',aLunchSub:'Khoá 1 tiếng',
+  aPaus:'Nghỉ giải lao 30 phút',aPausSub:'Nghỉ ngắn',aBlock:'Khoá giờ…',aBlockSub:'Chọn thời lượng và lý do',
+  lunchWord:'Nghỉ trưa',pausWord:'Giải lao',
   freeNow:'Đang rảnh',nextFree:'Rảnh lúc',fullDay:'Kín cả ngày',closedDay:'Ngày này tiệm nghỉ.',moveAsk:'Chuyển lịch này?',
   svcNote:'Sửa xong hiện ngay trên trang đặt lịch của khách.',newSvc:'+ Thêm dịch vụ',svcNew:'Thêm dịch vụ',svcEdit:'Sửa dịch vụ',
   svcSub:'Tên hiện cho khách thấy. Giá tính bằng kronor.',svcNameSv:'Tên (tiếng Thụy Điển)',svcNameEn:'Tên (tiếng Anh)',
@@ -730,7 +762,7 @@ function paintGrid(){
       const c=document.createElement('div');
       c.className='cell'+(m%60===0?' hour':'');
       c.dataset.time=toHM(m); c.dataset.staff=st.id;
-      c.onclick=()=>openBooking(null,{staffId:st.id,time:toHM(m),date:day.date});
+      c.onclick=()=>openCellSheet({staffId:st.id,staffName:st.name,time:toHM(m),date:day.date});
       col.appendChild(c);
     }
     // lịch khách
@@ -765,6 +797,44 @@ function paintGrid(){
     body.appendChild(line);
   }
   box.appendChild(body);
+}
+
+/* ---------- bấm ô trống: chọn việc cần làm ---------- */
+let cellCtx=null;
+
+function openCellSheet(ctx){
+  cellCtx=ctx; txt();
+  $('#aErr').hidden=true;
+  const d=new Date(ctx.date+'T12:00:00');
+  $('#aTitle').textContent=`${ctx.time} · ${ctx.staffName}`;
+  $('#aSub').textContent=d.toLocaleDateString(locale(),{weekday:'long',day:'numeric',month:'long'});
+  $('#amask').classList.add('on');
+}
+$('#aClose').onclick=()=>$('#amask').classList.remove('on');
+$('#amask').onclick=e=>{ if(e.target===$('#amask')) $('#amask').classList.remove('on'); };
+
+$('#aBook').onclick=()=>{
+  $('#amask').classList.remove('on');
+  openBooking(null,{staffId:cellCtx.staffId,time:cellCtx.time,date:cellCtx.date});
+};
+$('#aLunch').onclick=()=>quickBlock(60,t('lunchWord'));
+$('#aPaus').onclick =()=>quickBlock(30,t('pausWord'));
+$('#aBlock').onclick=()=>{
+  $('#amask').classList.remove('on');
+  openBlock({staffId:cellCtx.staffId,date:cellCtx.date,start:cellCtx.time,
+             end:toHM(toMin(cellCtx.time)+60)});
+};
+
+async function quickBlock(minutes,reason){
+  const btn=$('#aLunch'), old=btn.textContent;
+  try{
+    await api('adminBlockAdd',{
+      staffId:cellCtx.staffId, date:cellCtx.date, dateTo:cellCtx.date,
+      start:cellCtx.time, end:toHM(toMin(cellCtx.time)+minutes), reason
+    });
+    $('#amask').classList.remove('on');
+    await load();
+  }catch(e){ err('#aErr',e.message); }
 }
 
 function busyOf(staffId){
@@ -1024,15 +1094,19 @@ $('#mCancel').onclick=async()=>{
 };
 
 /* ---------- spärrmodal ---------- */
-$('#blockBtn').onclick=()=>{
+$('#blockBtn').onclick=()=>openBlock(null);
+
+function openBlock(pre){
   fillSelects(); txt();
   $('#bErr').hidden=true;
-  $('#bDate').value = view==='day'? date : todayISO();
+  $('#bDate').value   = pre? pre.date : (view==='day'? date : todayISO());
   $('#bDateTo').value = $('#bDate').value;
-  $('#bStaff').value = cfg.staff[0] ? cfg.staff[0].id : 'ALLA';
-  $('#bReason').value='';
+  $('#bStaff').value  = pre? pre.staffId : (cfg.staff[0] ? cfg.staff[0].id : 'ALLA');
+  $('#bStart').value  = pre? pre.start : '12:00';
+  $('#bEnd').value    = pre? pre.end   : '13:00';
+  $('#bReason').value = '';
   $('#bmask').classList.add('on');
-};
+}
 $('#bClose').onclick=()=>$('#bmask').classList.remove('on');
 $('#bmask').onclick=e=>{ if(e.target===$('#bmask')) $('#bmask').classList.remove('on'); };
 
