@@ -275,7 +275,7 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
 <!-- APP -->
 <div id="app" hidden>
   <div class="top"><div class="wrap">
-    <div class="logo" id="salonName">N.O.S Nails Beauty Handen <small style="opacity:.6;font-size:11px;font-weight:400">v2.8</small></div>
+    <div class="logo" id="salonName">N.O.S Nails Beauty Handen <small style="opacity:.6;font-size:11px;font-weight:400">v2.9</small></div>
     <div class="langs"><button data-lang="sv" class="on">SV</button><button data-lang="vi">VI</button></div>
     <button class="btn ghost sm" id="logout" data-t="logout">Logga ut</button>
   </div></div>
@@ -291,6 +291,7 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
       <div class="nav"><button id="prev">‹</button><button id="next">›</button></div>
       <button class="btn line sm" id="todayBtn" data-t="today">Idag</button>
       <input type="date" id="datePick" style="width:auto">
+      <button class="btn line sm" id="refBtn" title="Rensa cache" data-t="refresh">↻</button>
       <button class="btn line sm" id="repBtn" data-t="report">📊 Rapport</button>
       <div class="vtabs" id="vtabs">
         <button id="vGrid" class="on" data-t="vGrid">Schema</button>
@@ -474,7 +475,7 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbxAgRKP5UWX9V8O4OqlJpAQ
 
 const T={
  sv:{loginH:'Adminpanel',loginP:'Ange adminnyckeln från fliken Settings.',loginB:'Logga in',logout:'Logga ut',
-  tabDay:'Dag',tabWeek:'Vecka',tabSvc:'Tjänster',vGrid:'Schema',vList:'Lista',vCols:'Per tekniker',phoneCall:'Ring',report:'📊 Rapport',
+  tabDay:'Dag',tabWeek:'Vecka',tabSvc:'Tjänster',vGrid:'Schema',vList:'Lista',vCols:'Per tekniker',phoneCall:'Ring',report:'📊 Rapport',refresh:'↻',refreshed:'Uppdaterat ✓',
   repH:'Rapport',rDay:'Dag',rWeek:'Vecka',rMonth:'Månad',rBookings:'Bokningar',rRevenue:'Värde',rHours:'Timmar',
   rPerStaff:'Per tekniker',rTotal:'Totalt',rNoData:'Inga bokningar i perioden.',
   gridHint:'Dra bokningar och spärrar mellan tekniker/tider. Dra i kanten för att ändra längd. Dubbelklick tar bort en spärr.',
@@ -497,7 +498,7 @@ const T={
   pickTime:'Välj en tid.',needName:'Ange kundens namn.',anyStaff:'Först ledig',
   confirmCancel:'Avboka den här tiden?',confirmDelBlock:'Ta bort spärren?',week:'Vecka'},
  vi:{loginH:'Trang quản lý',loginP:'Nhập adminKey trong tab Settings.',loginB:'Đăng nhập',logout:'Thoát',
-  tabDay:'Ngày',tabWeek:'Tuần',tabSvc:'Dịch vụ',vGrid:'Lịch',vList:'Danh sách',vCols:'Theo thợ',phoneCall:'Gọi',report:'📊 Báo cáo',
+  tabDay:'Ngày',tabWeek:'Tuần',tabSvc:'Dịch vụ',vGrid:'Lịch',vList:'Danh sách',vCols:'Theo thợ',phoneCall:'Gọi',report:'📊 Báo cáo',refresh:'↻',refreshed:'Đã làm mới ✓',
   repH:'Báo cáo',rDay:'Ngày',rWeek:'Tuần',rMonth:'Tháng',rBookings:'Lượt khách',rRevenue:'Doanh thu',rHours:'Số giờ',
   rPerStaff:'Theo thợ',rTotal:'Tổng cộng',rNoData:'Kỳ này chưa có khách.',
   gridHint:'Kéo lịch khách và giờ nghỉ sang thợ/giờ khác. Kéo mép trên–dưới để co giãn giờ nghỉ. Bấm đúp để bỏ khoá.',
@@ -1344,6 +1345,10 @@ document.addEventListener('keydown',e=>{
 
 /* ================= BÁO CÁO ================= */
 let repMode='day';
+$('#refBtn').onclick=async()=>{
+  try{ await api('adminRefresh'); cfg=await api('adminLogin'); await load(); toast(t('refreshed')); }
+  catch(e){ toast(e.message,true); }
+};
 $('#repBtn').onclick=()=>{ $('#rmask').classList.add('on'); loadReport(); };
 $('#rClose').onclick=()=>$('#rmask').classList.remove('on');
 $('#rmask').onclick=e=>{ if(e.target===$('#rmask')) $('#rmask').classList.remove('on'); };
