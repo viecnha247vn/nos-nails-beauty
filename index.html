@@ -43,6 +43,16 @@ button,input,textarea{font:inherit;color:inherit}
 .info .rows{margin-top:12px;display:grid;gap:5px;font-size:14px;color:rgba(255,255,255,.85)}
 .info .rows div{display:flex;gap:9px}
 .info .rows b{color:#fff;font-weight:600}
+.hrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px}
+.hlink{background:none;border:0;color:rgba(255,255,255,.85);font-size:13px;font-weight:600;cursor:pointer;
+  text-decoration:underline;text-underline-offset:3px;padding:4px 0}
+.hlink:hover{color:#fff}
+.htable{margin-top:12px;background:rgba(255,255,255,.12);border-radius:10px;padding:10px 14px;font-size:14px;
+  max-width:340px}
+.htable div{display:flex;justify-content:space-between;gap:16px;padding:4px 0;color:rgba(255,255,255,.85)}
+.htable div + div{border-top:1px solid rgba(255,255,255,.12)}
+.htable div.now{color:#fff;font-weight:700}
+.htable div.shut span:last-child{color:rgba(255,255,255,.55)}
 .badge{display:inline-flex;align-items:center;gap:6px;margin-top:14px;font-size:13px;font-weight:600;
   background:rgba(255,255,255,.15);padding:5px 12px;border-radius:99px}
 .badge i{width:7px;height:7px;border-radius:50%;background:#5FD3A3;font-style:normal;box-shadow:0 0 0 3px rgba(95,211,163,.25)}
@@ -169,9 +179,13 @@ footer a{color:var(--brick)}
   <div class="rows">
     <div><span>📍</span><span id="sAddr"></span></div>
     <div><span>📞</span><b id="sPhone"></b></div>
-    <div><span>🕐</span><span id="sHours"></span></div>
+    <div><span>🕐</span><span id="sToday"></span></div>
   </div>
-  <div class="badge" id="openNow" hidden><i></i><span></span></div>
+  <div class="hrow">
+    <div class="badge" id="openNow" hidden><i></i><span></span></div>
+    <button class="hlink" id="hToggle" data-t="allHours">Alla öppettider ▾</button>
+  </div>
+  <div class="htable" id="hTable" hidden></div>
 </div></div>
 
 <main class="wrap">
@@ -243,7 +257,7 @@ const T={
  sv:{h1:'Välj behandling',h2:'Välj tid',h3:'Dina uppgifter',loading:'Laddar…',
   fName:'Namn',fPhone:'Telefon',fMail:'E-post',fNote:'Meddelande (valfritt)',
   next:'Nästa',back:'Tillbaka',confirm:'Bekräfta bokning',pickSvc:'Välj en behandling',
-  pick:'Välj',picked:'Vald',anyStaff:'Alla',open:'Öppet nu',closed:'Stängt nu',
+  pick:'Välj',picked:'Vald',anyStaff:'Alla',open:'Öppet nu',closed:'Stängt nu',allHours:'Alla öppettider ▾',hideHours:'Dölj ▴',shut:'Stängt',todayIs:'Idag',
   today:'Idag',tomorrow:'Imorgon',firstFree:'⚡ Första lediga',
   morning:'Förmiddag',afternoon:'Eftermiddag',evening:'Kväll',
   tapHint:'Tryck på en tid så går du direkt vidare.',
@@ -256,7 +270,7 @@ const T={
  en:{h1:'Choose a treatment',h2:'Choose a time',h3:'Your details',loading:'Loading…',
   fName:'Name',fPhone:'Phone',fMail:'Email',fNote:'Message (optional)',
   next:'Next',back:'Back',confirm:'Confirm booking',pickSvc:'Choose a treatment',
-  pick:'Select',picked:'Selected',anyStaff:'Anyone',open:'Open now',closed:'Closed now',
+  pick:'Select',picked:'Selected',anyStaff:'Anyone',open:'Open now',closed:'Closed now',allHours:'All opening hours ▾',hideHours:'Hide ▴',shut:'Closed',todayIs:'Today',
   today:'Today',tomorrow:'Tomorrow',firstFree:'⚡ First available',
   morning:'Morning',afternoon:'Afternoon',evening:'Evening',
   tapHint:'Tap a time and you go straight on.',
@@ -269,7 +283,7 @@ const T={
  vi:{h1:'Chọn dịch vụ',h2:'Chọn giờ',h3:'Thông tin của bạn',loading:'Đang tải…',
   fName:'Họ tên',fPhone:'Điện thoại',fMail:'Email',fNote:'Ghi chú (không bắt buộc)',
   next:'Tiếp',back:'Quay lại',confirm:'Xác nhận đặt lịch',pickSvc:'Chọn dịch vụ',
-  pick:'Chọn',picked:'Đã chọn',anyStaff:'Thợ nào cũng được',open:'Đang mở cửa',closed:'Đang đóng cửa',
+  pick:'Chọn',picked:'Đã chọn',anyStaff:'Thợ nào cũng được',open:'Đang mở cửa',closed:'Đang đóng cửa',allHours:'Xem cả tuần ▾',hideHours:'Thu gọn ▴',shut:'Nghỉ',todayIs:'Hôm nay',
   today:'Hôm nay',tomorrow:'Ngày mai',firstFree:'⚡ Giờ sớm nhất',
   morning:'Buổi sáng',afternoon:'Buổi chiều',evening:'Buổi tối',
   tapHint:'Bấm vào giờ là qua bước tiếp theo luôn.',
@@ -327,10 +341,36 @@ document.querySelectorAll('.langs button').forEach(b=>b.onclick=()=>{
   }catch(e){ showErr(e.message); }
 })();
 
-function hoursLine(){
-  return cfg.hours.slice().sort((a,b)=>((a.weekday+6)%7)-((b.weekday+6)%7))
-    .map(x=>`${WD[lang][x.weekday]} ${x.open}–${x.close}`).join(' · ');
+/* Giờ hôm nay – dòng ngắn gọn */
+function todayLine(){
+  const h=cfg.hours.find(x=>x.weekday===new Date().getDay());
+  return `${t('todayIs')} ${h? h.open+'–'+h.close : t('shut').toLowerCase()}`;
 }
+
+/* Cả tuần, gộp các ngày liền nhau cùng giờ: Mån–Fre 10:00–19:00 */
+function hoursTable(){
+  const order=[1,2,3,4,5,6,0];
+  const rows=order.map(w=>{ const h=cfg.hours.find(x=>x.weekday===w); return {w, open:h?h.open:'', close:h?h.close:''}; });
+  const out=[]; 
+  rows.forEach(r=>{
+    const last=out[out.length-1];
+    if(last && last.open===r.open && last.close===r.close) last.end=r.w;
+    else out.push({start:r.w, end:r.w, open:r.open, close:r.close});
+  });
+  const wd=new Date().getDay();
+  return out.map(g=>{
+    const label = g.start===g.end ? WD[lang][g.start] : `${WD[lang][g.start]}–${WD[lang][g.end]}`;
+    const time  = g.open ? `${g.open}–${g.close}` : t('shut');
+    const isNow = order.slice(order.indexOf(g.start), order.indexOf(g.end)+1).includes(wd);
+    return `<div class="${isNow?'now':''} ${g.open?'':'shut'}"><span>${label}</span><span>${time}</span></div>`;
+  }).join('');
+}
+
+$('#hToggle').onclick=()=>{
+  const box=$('#hTable'), open=box.hidden;
+  box.hidden=!open;
+  $('#hToggle').textContent = open ? t('hideHours') : t('allHours');
+};
 function openBadge(){
   const now=new Date(), h=cfg.hours.find(x=>x.weekday===now.getDay());
   const hm=now.toTimeString().slice(0,5);
@@ -343,7 +383,12 @@ function openBadge(){
 /* ---------- render ---------- */
 function render(){
   txt();
-  if(cfg){ $('#sHours').textContent=hoursLine(); openBadge(); }
+  if(cfg){
+    $('#sToday').textContent=todayLine();
+    $('#hTable').innerHTML=hoursTable();
+    $('#hToggle').textContent = $('#hTable').hidden ? t('allHours') : t('hideHours');
+    openBadge();
+  }
   drawServices(); drawQuick(); drawStaff(); drawDates(); drawTimes(); drawRecap(); drawBar();
   [1,2,3,4].forEach(n=>{ $('#s'+n).hidden=(n!==step); });
   $('#footbar').hidden = step===4;
