@@ -90,6 +90,23 @@ select{-webkit-appearance:none;appearance:none;
   .li .clock b{font-size:15px}
   .li .right{padding:11px 10px}
 }
+/* TJÄNSTER */
+.svcwrap{padding-bottom:80px}
+.svcgrp{margin-bottom:18px}
+.svcgrp h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 8px 2px}
+.svcrow{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:12px;
+  padding:12px 14px;margin-bottom:8px;cursor:pointer;text-align:left;width:100%}
+.svcrow:hover{box-shadow:var(--shadow)}
+.svcrow.off{opacity:.5}
+.svcrow .t{flex:1;min-width:0}
+.svcrow .t b{display:block;font-size:15px;font-weight:600}
+.svcrow .t small{color:var(--muted);font-size:13px}
+.svcrow .pr{font-weight:700;font-size:16px;color:var(--brick);white-space:nowrap}
+.svcrow .ed{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:600}
+.newsvc{width:100%;border:1px dashed var(--brick);color:var(--brick);background:#fff;border-radius:12px;
+  padding:14px;font-weight:600;cursor:pointer;margin-bottom:18px}
+.newsvc:hover{background:#FBF3F1}
+.note{font-size:13px;color:var(--muted);margin-bottom:14px}
 .vtabs{display:flex;background:#fff;border:1px solid var(--line);border-radius:99px;padding:3px}
 .vtabs button{border:0;background:none;padding:7px 14px;border-radius:99px;font-weight:600;font-size:13px;cursor:pointer;color:var(--muted)}
 .vtabs button.on{background:#EFE7E4;color:var(--ink)}
@@ -186,6 +203,7 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
       <div class="tabs">
         <button id="tabDay" class="on" data-t="tabDay">Dag</button>
         <button id="tabWeek" data-t="tabWeek">Vecka</button>
+        <button id="tabSvc" data-t="tabSvc">Tjänster</button>
       </div>
       <div class="title"><span id="tTitle">–</span><small id="tSub"></small></div>
       <div class="nav"><button id="prev">‹</button><button id="next">›</button></div>
@@ -206,6 +224,12 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
     <div class="list" id="list"></div>
     <div class="cols" id="cols" hidden></div>
     <div class="week" id="week" hidden></div>
+
+    <div class="svcwrap" id="svcView" hidden>
+      <p class="note" data-t="svcNote">Ändringar syns direkt på bokningssidan.</p>
+      <button class="newsvc" id="newSvc" data-t="newSvc">+ Ny behandling</button>
+      <div id="svcList"></div>
+    </div>
   </div>
 
   <div class="fabs">
@@ -299,7 +323,12 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbxAgRKP5UWX9V8O4OqlJpAQ
 
 const T={
  sv:{loginH:'Adminpanel',loginP:'Ange adminnyckeln från fliken Settings.',loginB:'Logga in',logout:'Logga ut',
-  tabDay:'Dag',tabWeek:'Vecka',vList:'Lista',vCols:'Per tekniker',phoneCall:'Ring',today:'Idag',sBookings:'Bokningar',sRevenue:'Värde',sHours:'Bokad tid',
+  tabDay:'Dag',tabWeek:'Vecka',tabSvc:'Tjänster',vList:'Lista',vCols:'Per tekniker',phoneCall:'Ring',
+  svcNote:'Ändringar syns direkt på bokningssidan.',newSvc:'+ Ny behandling',svcNew:'Ny behandling',svcEdit:'Ändra behandling',
+  svcSub:'Namnet visas för kunden. Priset i kronor.',svcNameSv:'Namn (svenska)',svcNameEn:'Namn (engelska)',
+  svcNameVi:'Namn (vietnamesiska)',svcMin:'Längd (minuter)',svcPrice:'Pris (kr)',svcCat:'Kategori',
+  svcActive:'Bokningsbar för kunder',svcDel:'Ta bort',svcOff:'Dold',svcNoCat:'Övrigt',
+  svcDelAsk:'Ta bort behandlingen?',svcHidden:'Behandlingen används i kommande bokningar – den döljs istället för kunderna.',today:'Idag',sBookings:'Bokningar',sRevenue:'Värde',sHours:'Bokad tid',
   newB:'+ Ny bokning',blockB:'Spärra tid',
   lSvc:'Behandling',lStaff:'Tekniker',lPrice:'Pris',lDate:'Datum',lTimeNow:'Vald tid',lFree:'Lediga tider',
   lForce:'Boka ändå (ignorera krock)',lName:'Kund',lPhone:'Telefon',lMail:'E-post',lStatus:'Status',lNote:'Anteckning',
@@ -311,7 +340,12 @@ const T={
   pickTime:'Välj en tid.',needName:'Ange kundens namn.',anyStaff:'Först ledig',
   confirmCancel:'Avboka den här tiden?',confirmDelBlock:'Ta bort spärren?',week:'Vecka'},
  vi:{loginH:'Trang quản lý',loginP:'Nhập adminKey trong tab Settings.',loginB:'Đăng nhập',logout:'Thoát',
-  tabDay:'Ngày',tabWeek:'Tuần',vList:'Danh sách',vCols:'Theo thợ',phoneCall:'Gọi',today:'Hôm nay',sBookings:'Lượt khách',sRevenue:'Doanh thu',sHours:'Giờ đã kín',
+  tabDay:'Ngày',tabWeek:'Tuần',tabSvc:'Dịch vụ',vList:'Danh sách',vCols:'Theo thợ',phoneCall:'Gọi',
+  svcNote:'Sửa xong hiện ngay trên trang đặt lịch của khách.',newSvc:'+ Thêm dịch vụ',svcNew:'Thêm dịch vụ',svcEdit:'Sửa dịch vụ',
+  svcSub:'Tên hiện cho khách thấy. Giá tính bằng kronor.',svcNameSv:'Tên (tiếng Thụy Điển)',svcNameEn:'Tên (tiếng Anh)',
+  svcNameVi:'Tên (tiếng Việt)',svcMin:'Thời lượng (phút)',svcPrice:'Giá (kr)',svcCat:'Nhóm',
+  svcActive:'Cho khách đặt',svcDel:'Xoá',svcOff:'Đang ẩn',svcNoCat:'Khác',
+  svcDelAsk:'Xoá dịch vụ này?',svcHidden:'Dịch vụ đang có lịch khách sắp tới — hệ thống chỉ ẩn khỏi trang khách, không xoá.',today:'Hôm nay',sBookings:'Lượt khách',sRevenue:'Doanh thu',sHours:'Giờ đã kín',
   newB:'+ Thêm lịch',blockB:'Khoá giờ',
   lSvc:'Dịch vụ',lStaff:'Thợ',lPrice:'Giá',lDate:'Ngày',lTimeNow:'Giờ đã chọn',lFree:'Giờ còn trống',
   lForce:'Vẫn xếp (bỏ qua trùng giờ)',lName:'Khách',lPhone:'Điện thoại',lMail:'Email',lStatus:'Trạng thái',lNote:'Ghi chú',
@@ -327,7 +361,7 @@ const WD ={sv:['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag
 const WDS={sv:['Sön','Mån','Tis','Ons','Tor','Fre','Lör'],vi:['CN','T2','T3','T4','T5','T6','T7']};
 const SWATCH=['#8C3A31','#C08457','#8FAE9B','#6E2C25','#B5674F','#3E2B27'];
 
-let lang='sv', key='', cfg=null, view='day', dayMode='list', date=todayISO(), day=null, weekData=null, edit=null;
+let lang='sv', key='', cfg=null, view='day', dayMode='list', svcData=null, editSvc=null, date=todayISO(), day=null, weekData=null, edit=null;
 
 const $=s=>document.querySelector(s);
 const t=k=>T[lang][k]||T.sv[k]||k;
@@ -372,10 +406,18 @@ $('#logout').onclick=()=>{ sessionStorage.removeItem('nb_key'); location.reload(
 /* ---------- vy + navigering ---------- */
 $('#tabDay').onclick =()=>{ view='day';  syncTabs(); load(); };
 $('#tabWeek').onclick=()=>{ view='week'; syncTabs(); load(); };
+$('#tabSvc').onclick =()=>{ view='svc';  syncTabs(); load(); };
 function syncTabs(){
   $('#tabDay').classList.toggle('on',view==='day');
   $('#tabWeek').classList.toggle('on',view==='week');
+  $('#tabSvc').classList.toggle('on',view==='svc');
+  $('#svcView').hidden = view!=='svc';
   $('#vtabs').hidden = view!=='day';
+  document.querySelector('.sum').hidden = view==='svc';
+  document.querySelector('.nav').hidden = view==='svc';
+  $('#todayBtn').hidden = view==='svc';
+  $('#datePick').hidden = view==='svc';
+  document.querySelector('.fabs').hidden = view==='svc';
   $('#vList').classList.toggle('on',dayMode==='list');
   $('#vCols').classList.toggle('on',dayMode==='cols');
   $('#list').hidden = !(view==='day' && dayMode==='list');
@@ -398,13 +440,92 @@ $('#datePick').onchange=e=>{ date=e.target.value; load(); };
 async function load(){
   try{
     if(view==='day'){ day=await api('adminDay',{date}); }
-    else{ const from=monday(date); weekData=await api('adminRange',{from,to:addDays(from,6)}); }
+    else if(view==='week'){ const from=monday(date); weekData=await api('adminRange',{from,to:addDays(from,6)}); }
+    else{ svcData=await api('adminServices'); cfg=await api('adminLogin'); }
     paint();
   }catch(e){ $('#cols').innerHTML='<p class="none">'+e.message+'</p>'; }
 }
 
 /* ---------- rita ---------- */
-function paint(){ txt(); syncTabs(); view==='day'?paintDay():paintWeek(); }
+function paint(){
+  txt(); syncTabs();
+  if(view==='day') paintDay();
+  else if(view==='week') paintWeek();
+  else paintServices();
+}
+
+/* ---------- tjänster ---------- */
+function paintServices(){
+  if(!svcData) return;
+  $('#tTitle').textContent=t('tabSvc');
+  $('#tSub').textContent='';
+  const box=$('#svcList'); box.innerHTML='';
+  const cats=[...new Set(svcData.services.map(s=>s.category||''))];
+  cats.forEach(cat=>{
+    const g=document.createElement('div'); g.className='svcgrp';
+    g.innerHTML=`<h3>${cat||t('svcNoCat')}</h3>`;
+    svcData.services.filter(s=>(s.category||'')===cat).forEach(s=>{
+      const b=document.createElement('button');
+      b.className='svcrow'+(s.active?'':' off');
+      const nm = lang==='vi' ? (s.name_vi||s.name_sv) : s.name_sv;
+      b.innerHTML=`<div class="t"><b>${nm}</b><small>${s.minutes} min${s.active?'':' · '+t('svcOff')}</small></div>
+        <span class="pr">${s.price} kr</span><span class="ed">✎</span>`;
+      b.onclick=()=>openSvc(s);
+      g.appendChild(b);
+    });
+    box.appendChild(g);
+  });
+  const dl=$('#catList'); dl.innerHTML='';
+  (svcData.categories||[]).forEach(c=>{ const o=document.createElement('option'); o.value=c; dl.appendChild(o); });
+}
+
+$('#newSvc').onclick=()=>openSvc(null);
+$('#sClose').onclick=()=>$('#smask').classList.remove('on');
+$('#smask').onclick=e=>{ if(e.target===$('#smask')) $('#smask').classList.remove('on'); };
+
+function openSvc(s){
+  editSvc=s; txt();
+  $('#sErr').hidden=true;
+  $('#sTitle').textContent = s? t('svcEdit') : t('svcNew');
+  $('#sDel').hidden = !s;
+  $('#sNameSv').value = s? s.name_sv : '';
+  $('#sNameEn').value = s? s.name_en : '';
+  $('#sNameVi').value = s? s.name_vi : '';
+  $('#sMin').value    = s? s.minutes : 60;
+  $('#sPrice').value  = s? s.price : '';
+  $('#sCat').value    = s? s.category : '';
+  $('#sActive').checked = s? !!s.active : true;
+  $('#smask').classList.add('on');
+  setTimeout(()=>$('#sNameSv').focus(),80);
+}
+
+$('#sSave').onclick=async()=>{
+  $('#sErr').hidden=true;
+  const btn=$('#sSave'), old=btn.textContent; btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  try{
+    await api('adminServiceSave',{
+      id: editSvc? editSvc.id : '',
+      name_sv:$('#sNameSv').value.trim(),
+      name_en:$('#sNameEn').value.trim(),
+      name_vi:$('#sNameVi').value.trim(),
+      minutes:$('#sMin').value, price:$('#sPrice').value,
+      category:$('#sCat').value.trim(), active:$('#sActive').checked
+    });
+    $('#smask').classList.remove('on');
+    await load();
+  }catch(e){ err('#sErr',e.message); }
+  finally{ btn.disabled=false; btn.textContent=old; }
+};
+
+$('#sDel').onclick=async()=>{
+  if(!editSvc||!confirm(t('svcDelAsk'))) return;
+  try{
+    const r=await api('adminServiceDelete',{id:editSvc.id});
+    if(r.hidden) alert(t('svcHidden'));
+    $('#smask').classList.remove('on');
+    await load();
+  }catch(e){ err('#sErr',e.message); }
+};
 
 function setSum(tot){
   $('#sCount').textContent=tot.count;
