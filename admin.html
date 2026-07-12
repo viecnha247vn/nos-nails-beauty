@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin – N.O.S Nails Beauty AB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#2A1F1D;--brick:#8C3A31;--brick-d:#6E2C25;--bone:#FFFFFF;--paper:#F8F4F2;
+  --lacquer:#8C3A31;--sand:#C08457;--mint:#8FAE9B;
+  --line:rgba(42,31,29,.14);--muted:#8A7A76;--shadow:0 8px 24px rgba(42,31,29,.10)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1240px;margin:0 auto;padding:0 16px}
+button,input,select,textarea{font:inherit;color:inherit}
+[hidden]{display:none!important}
+
+.top{background:var(--brick);color:#fff;padding:12px 0;position:sticky;top:0;z-index:30}
+.top .wrap{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.logo{font-family:'Inter',system-ui,sans-serif;font-weight:700;letter-spacing:.02em;font-size:16px;flex:1;min-width:110px}
+.langs{display:flex;gap:2px;background:rgba(255,255,255,.14);padding:3px;border-radius:99px}
+.langs button{background:none;border:0;color:rgba(255,255,255,.72);font-size:12px;font-weight:700;padding:5px 10px;border-radius:99px;cursor:pointer}
+.langs button.on{background:#fff;color:var(--brick)}
+
+.btn{background:var(--lacquer);color:#fff;border:0;border-radius:99px;padding:10px 20px;font-weight:700;cursor:pointer}
+.btn:hover{filter:brightness(1.08)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.line{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.btn.danger{background:transparent;border:1px solid var(--lacquer);color:var(--lacquer)}
+.btn.sm{padding:7px 14px;font-size:13px}
+.btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff}
+
+.login{max-width:360px;margin:14vh auto;background:#fff;border:1px solid var(--line);border-radius:16px;padding:28px;box-shadow:var(--shadow)}
+.login h1{font-family:'Inter',system-ui,sans-serif;font-weight:700;letter-spacing:-.02em;font-size:26px;margin-bottom:6px}
+.login p{color:var(--muted);font-size:14px;margin-bottom:18px}
+
+/* toolbar */
+.tools{display:flex;align-items:center;gap:8px;margin:18px 0 14px;flex-wrap:wrap}
+.tabs{display:flex;background:#fff;border:1px solid var(--line);border-radius:99px;padding:3px}
+.tabs button{border:0;background:none;padding:8px 18px;border-radius:99px;font-weight:700;font-size:13px;cursor:pointer;color:var(--muted)}
+.tabs button.on{background:var(--brick);color:#fff}
+.title{font-family:'Inter',system-ui,sans-serif;font-weight:700;font-size:22px;flex:1;min-width:150px}
+.title small{display:block;font-family:'Inter',system-ui,sans-serif;font-size:13px;color:var(--muted)}
+.nav{display:flex;gap:6px}
+.nav button{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:700}
+input[type=date],input[type=time],input[type=text],input[type=tel],input[type=email],select,textarea{
+  border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;width:100%}
+select{-webkit-appearance:none;appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 16px) 18px,calc(100% - 11px) 18px;background-size:5px 5px;background-repeat:no-repeat}
+
+.sum{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.sum div{background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 15px}
+.sum b{display:block;font-family:'Inter',system-ui,sans-serif;font-weight:700;font-size:23px}
+.sum span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.sum div.rev b{color:var(--lacquer)}
+
+/* DAGSVY: kolumn per tekniker */
+.cols{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));padding-bottom:80px}
+.col{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:var(--shadow)}
+.col h3{display:flex;align-items:center;gap:9px;font-size:14px;margin-bottom:10px}
+.dot{width:9px;height:9px;border-radius:50%;flex:none}
+.col h3 small{margin-left:auto;color:var(--muted);font-weight:400}
+.bk{border:1px solid var(--line);border-left:3px solid var(--lacquer);border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer;transition:.15s;background:#fff;width:100%;text-align:left;display:block}
+.bk:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+.bk .r1{display:flex;justify-content:space-between;gap:10px;font-weight:700;font-size:14px}
+.bk .r1 em{font-style:normal;color:var(--lacquer)}
+.bk .r2{font-size:13px;margin-top:2px}
+.bk .r3{font-size:12px;color:var(--muted);margin-top:3px;display:flex;justify-content:space-between;gap:8px}
+.bk.avbokad{opacity:.45;border-left-color:var(--muted);text-decoration:line-through}
+.bk.klar{border-left-color:var(--mint)}
+.bk.noshow{border-left-color:var(--sand)}
+.blk{display:flex;align-items:center;gap:8px;background:repeating-linear-gradient(45deg,#F3EDEB,#F3EDEB 6px,#E9E0DC 6px,#E9E0DC 12px);
+  border:1px dashed var(--line);border-radius:10px;padding:9px 11px;margin-bottom:8px;font-size:13px;color:var(--muted)}
+.blk b{color:var(--ink);font-size:13px}
+.blk .x{margin-left:auto;border:0;background:none;color:var(--muted);cursor:pointer;font-size:17px;line-height:1;padding:2px 4px}
+.blk .x:hover{color:var(--lacquer)}
+.none{color:var(--muted);font-size:13px;padding:8px 2px}
+
+/* VECKOVY */
+.week{display:grid;grid-template-columns:repeat(7,minmax(150px,1fr));gap:8px;overflow-x:auto;padding-bottom:80px}
+.wd{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;min-width:150px}
+.wd.today{border-color:var(--lacquer);box-shadow:inset 0 0 0 1px var(--lacquer)}
+.wd h4{font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);cursor:pointer}
+.wd h4 b{display:block;font-family:'Inter',system-ui,sans-serif;font-weight:700;font-size:19px;color:var(--ink);letter-spacing:0;text-transform:none}
+.wd .tot{font-size:12px;color:var(--lacquer);font-weight:700;margin:6px 0 8px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.chip{width:100%;text-align:left;border:0;border-left:3px solid var(--brick);background:#FBF6F4;border-radius:7px;padding:6px 8px;margin-bottom:5px;cursor:pointer;font-size:12px;line-height:1.35}
+.chip:hover{background:#F1E7E3}
+.chip b{display:block}
+.chip span{color:var(--muted)}
+.chip.avbokad{opacity:.4;text-decoration:line-through}
+.chip.blkc{border-left-color:var(--muted);background:#F3EDEB;cursor:default;font-style:italic}
+
+/* MODAL */
+.mask{position:fixed;inset:0;background:rgba(42,31,29,.55);display:none;align-items:flex-end;justify-content:center;z-index:40}
+.mask.on{display:flex}
+.modal{background:var(--paper);width:100%;max-width:560px;border-radius:18px 18px 0 0;padding:20px;max-height:92vh;overflow:auto}
+@media(min-width:640px){.mask{align-items:center}.modal{border-radius:18px}}
+.modal h2{font-family:'Inter',system-ui,sans-serif;font-weight:700;letter-spacing:-.02em;font-size:23px;margin-bottom:2px}
+.modal .code{color:var(--muted);font-size:13px;margin-bottom:16px}
+.field{margin-bottom:12px}
+label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pricebox{display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:12px 0}
+.pricebox b{font-family:'Inter',system-ui,sans-serif;font-weight:700;font-size:22px;color:var(--lacquer)}
+.pricebox span{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.07em}
+.times{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:6px;max-height:150px;overflow:auto;padding:2px}
+.time{border:1px solid var(--line);background:#fff;border-radius:9px;padding:9px 0;font-weight:700;font-size:13px;cursor:pointer}
+.time.sel{background:var(--brick);border-color:var(--brick);color:#fff}
+.chk{display:flex;align-items:center;gap:8px;font-size:13px;margin:10px 0;color:var(--muted)}
+.chk input{width:auto}
+.presets{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.presets button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer}
+.presets button:hover{border-color:var(--ink)}
+.acts{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.acts .btn{flex:1;min-width:105px}
+.err{background:#FBEDEA;border:1px solid var(--brick);color:#6E2C25;padding:10px 12px;border-radius:10px;font-size:13px;margin-bottom:12px}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.fabs{position:fixed;right:16px;bottom:16px;z-index:25;display:flex;gap:8px}
+.fabs .btn{box-shadow:0 10px 24px rgba(42,31,29,.25);padding:13px 20px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login" class="login">
+  <h1 data-t="loginH">Adminpanel</h1>
+  <p data-t="loginP">Ange adminnyckeln från fliken Settings.</p>
+  <div class="err" id="loginErr" hidden></div>
+  <div class="field"><input id="key" type="password" placeholder="adminKey"></div>
+  <button class="btn" style="width:100%" id="loginBtn" data-t="loginB">Logga in</button>
+</div>
+
+<!-- APP -->
+<div id="app" hidden>
+  <div class="top"><div class="wrap">
+    <div class="logo" id="salonName">N.O.S Nails</div>
+    <div class="langs"><button data-lang="sv" class="on">SV</button><button data-lang="vi">VI</button></div>
+    <button class="btn ghost sm" id="logout" data-t="logout">Logga ut</button>
+  </div></div>
+
+  <div class="wrap">
+    <div class="tools">
+      <div class="tabs">
+        <button id="tabDay" class="on" data-t="tabDay">Dag</button>
+        <button id="tabWeek" data-t="tabWeek">Vecka</button>
+      </div>
+      <div class="title"><span id="tTitle">–</span><small id="tSub"></small></div>
+      <div class="nav"><button id="prev">‹</button><button id="next">›</button></div>
+      <button class="btn line sm" id="todayBtn" data-t="today">Idag</button>
+      <input type="date" id="datePick" style="width:auto">
+    </div>
+
+    <div class="sum">
+      <div><b id="sCount">0</b><span data-t="sBookings">Bokningar</span></div>
+      <div class="rev"><b id="sRev">0 kr</b><span data-t="sRevenue">Värde</span></div>
+      <div><b id="sTime">0 h</b><span data-t="sHours">Bokad tid</span></div>
+    </div>
+
+    <div class="cols" id="cols"></div>
+    <div class="week" id="week" hidden></div>
+  </div>
+
+  <div class="fabs">
+    <button class="btn line" id="blockBtn" style="background:#fff" data-t="blockB">Spärra tid</button>
+    <button class="btn" id="newBtn" data-t="newB">+ Ny bokning</button>
+  </div>
+</div>
+
+<!-- MODAL: BOKNING -->
+<div class="mask" id="mask">
+  <div class="modal">
+    <h2 id="mTitle">–</h2>
+    <div class="code" id="mCode"></div>
+    <div class="err" id="mErr" hidden></div>
+
+    <div class="field"><label data-t="lSvc">Behandling</label><select id="mSvc"></select></div>
+    <div class="field"><label data-t="lStaff">Tekniker</label><select id="mStaff"></select></div>
+
+    <div class="pricebox"><span data-t="lPrice">Pris</span><b id="mPrice">–</b></div>
+
+    <div class="two">
+      <div class="field"><label data-t="lDate">Datum</label><input type="date" id="mDate"></div>
+      <div class="field"><label data-t="lTimeNow">Vald tid</label><input type="text" id="mTime" readonly></div>
+    </div>
+    <div class="field"><label data-t="lFree">Lediga tider</label><div class="times" id="mTimes"></div></div>
+    <div class="chk"><input type="checkbox" id="mForce"><label for="mForce" style="margin:0;font-weight:400" data-t="lForce">Boka ändå (ignorera krock)</label></div>
+
+    <div class="two">
+      <div class="field"><label data-t="lName">Kund</label><input type="text" id="mName"></div>
+      <div class="field"><label data-t="lPhone">Telefon</label><input type="tel" id="mPhone"></div>
+    </div>
+    <div class="two">
+      <div class="field"><label data-t="lMail">E-post</label><input type="email" id="mMail"></div>
+      <div class="field" id="statusWrap"><label data-t="lStatus">Status</label>
+        <select id="mStatus">
+          <option value="Bekräftad">Bekräftad</option>
+          <option value="Klar">Klar</option>
+          <option value="No-show">No-show</option>
+          <option value="Avbokad">Avbokad</option>
+        </select>
+      </div>
+    </div>
+    <div class="field"><label data-t="lNote">Anteckning</label><input type="text" id="mNote"></div>
+
+    <div class="acts">
+      <button class="btn line" id="mClose" data-t="close">Stäng</button>
+      <button class="btn danger" id="mCancel" data-t="cancelB">Avboka</button>
+      <button class="btn" id="mSave" data-t="save">Spara</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: SPÄRRA TID -->
+<div class="mask" id="bmask">
+  <div class="modal">
+    <h2 data-t="blockH">Spärra tid</h2>
+    <div class="code" data-t="blockP">Lunch, sjukdom, semester – teknikern går inte att boka.</div>
+    <div class="err" id="bErr" hidden></div>
+
+    <div class="presets">
+      <button data-p="lunch" data-t="pLunch">Lunch 12–13</button>
+      <button data-p="afternoon" data-t="pAfter">Eftermiddag</button>
+      <button data-p="allday" data-t="pAll">Hela dagen</button>
+    </div>
+
+    <div class="field"><label data-t="lStaff">Tekniker</label><select id="bStaff"></select></div>
+    <div class="two">
+      <div class="field"><label data-t="lFrom">Från datum</label><input type="date" id="bDate"></div>
+      <div class="field"><label data-t="lTo">Till datum</label><input type="date" id="bDateTo"></div>
+    </div>
+    <div class="two">
+      <div class="field"><label data-t="lStart">Start</label><input type="time" id="bStart" value="12:00" step="900"></div>
+      <div class="field"><label data-t="lEnd">Slut</label><input type="time" id="bEnd" value="13:00" step="900"></div>
+    </div>
+    <div class="field"><label data-t="lReason">Orsak</label><input type="text" id="bReason" placeholder="Lunch"></div>
+
+    <div class="acts">
+      <button class="btn line" id="bClose" data-t="close">Stäng</button>
+      <button class="btn" id="bSave" data-t="blockSave">Spärra</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ====== SAMMA API_URL SOM index.html ====== */
+const API_URL = 'https://script.google.com/macros/s/AKfycbxAgRKP5UWX9V8O4OqlJpAQH5ynSxgnCTNMnfng_9YybMHALJFQ98Rxindhuqls2hk/exec';
+/* ========================================== */
+
+const T={
+ sv:{loginH:'Adminpanel',loginP:'Ange adminnyckeln från fliken Settings.',loginB:'Logga in',logout:'Logga ut',
+  tabDay:'Dag',tabWeek:'Vecka',today:'Idag',sBookings:'Bokningar',sRevenue:'Värde',sHours:'Bokad tid',
+  newB:'+ Ny bokning',blockB:'Spärra tid',
+  lSvc:'Behandling',lStaff:'Tekniker',lPrice:'Pris',lDate:'Datum',lTimeNow:'Vald tid',lFree:'Lediga tider',
+  lForce:'Boka ändå (ignorera krock)',lName:'Kund',lPhone:'Telefon',lMail:'E-post',lStatus:'Status',lNote:'Anteckning',
+  close:'Stäng',cancelB:'Avboka',save:'Spara',newTitle:'Ny bokning',editTitle:'Ändra bokning',
+  blockH:'Spärra tid',blockP:'Lunch, sjukdom, semester – teknikern går inte att boka.',blockSave:'Spärra',
+  pLunch:'Lunch 12–13',pAfter:'Eftermiddag',pAll:'Hela dagen',
+  lFrom:'Från datum',lTo:'Till datum',lStart:'Start',lEnd:'Slut',lReason:'Orsak',allStaff:'Hela salongen',
+  none:'Inga bokningar',noTimes:'Inga lediga tider – kryssa i "Boka ändå" för att lägga in ändå.',
+  pickTime:'Välj en tid.',needName:'Ange kundens namn.',anyStaff:'Först ledig',
+  confirmCancel:'Avboka den här tiden?',confirmDelBlock:'Ta bort spärren?',week:'Vecka'},
+ vi:{loginH:'Trang quản lý',loginP:'Nhập adminKey trong tab Settings.',loginB:'Đăng nhập',logout:'Thoát',
+  tabDay:'Ngày',tabWeek:'Tuần',today:'Hôm nay',sBookings:'Lượt khách',sRevenue:'Doanh thu',sHours:'Giờ đã kín',
+  newB:'+ Thêm lịch',blockB:'Khoá giờ',
+  lSvc:'Dịch vụ',lStaff:'Thợ',lPrice:'Giá',lDate:'Ngày',lTimeNow:'Giờ đã chọn',lFree:'Giờ còn trống',
+  lForce:'Vẫn xếp (bỏ qua trùng giờ)',lName:'Khách',lPhone:'Điện thoại',lMail:'Email',lStatus:'Trạng thái',lNote:'Ghi chú',
+  close:'Đóng',cancelB:'Huỷ lịch',save:'Lưu',newTitle:'Thêm lịch',editTitle:'Sửa lịch',
+  blockH:'Khoá giờ',blockP:'Nghỉ trưa, nghỉ ốm, nghỉ phép — khách không đặt được thợ này.',blockSave:'Khoá',
+  pLunch:'Nghỉ trưa 12–13',pAfter:'Nghỉ chiều',pAll:'Nghỉ cả ngày',
+  lFrom:'Từ ngày',lTo:'Đến ngày',lStart:'Bắt đầu',lEnd:'Kết thúc',lReason:'Lý do',allStaff:'Cả tiệm',
+  none:'Chưa có khách',noTimes:'Không còn giờ trống — tick "Vẫn xếp" nếu muốn nhét thêm.',
+  pickTime:'Chọn giờ.',needName:'Nhập tên khách.',anyStaff:'Thợ nào rảnh cũng được',
+  confirmCancel:'Huỷ lịch này?',confirmDelBlock:'Bỏ khoá giờ này?',week:'Tuần'}};
+const WD ={sv:['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag'],
+           vi:['Chủ nhật','Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7']};
+const WDS={sv:['Sön','Mån','Tis','Ons','Tor','Fre','Lör'],vi:['CN','T2','T3','T4','T5','T6','T7']};
+const SWATCH=['#8C3A31','#C08457','#8FAE9B','#6E2C25','#B5674F','#3E2B27'];
+
+let lang='sv', key='', cfg=null, view='day', date=todayISO(), day=null, weekData=null, edit=null;
+
+const $=s=>document.querySelector(s);
+const t=k=>T[lang][k]||T.sv[k]||k;
+function todayISO(){const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);}
+function iso(d){return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);}
+function monday(s){const d=new Date(s+'T12:00:00');const w=(d.getDay()+6)%7;d.setDate(d.getDate()-w);return iso(d);}
+function addDays(s,n){const d=new Date(s+'T12:00:00');d.setDate(d.getDate()+n);return iso(d);}
+function locale(){return lang==='vi'?'vi-VN':'sv-SE';}
+function staffName(id){const s=cfg.staff.find(x=>x.id===id);return s?s.name:(String(id).toUpperCase()==='ALLA'?t('allStaff'):id);}
+function staffColor(id){const i=cfg.staff.findIndex(x=>x.id===id);return i<0?'#7A6E82':SWATCH[i%SWATCH.length];}
+
+async function api(action,p={}){
+  const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({action,key,...p})});
+  const j=await r.json();
+  if(!j.success) throw new Error(j.error||'Fel');
+  return j.data;
+}
+function txt(){document.querySelectorAll('[data-t]').forEach(e=>e.textContent=t(e.dataset.t));}
+document.querySelectorAll('.langs button').forEach(b=>b.onclick=()=>{
+  lang=b.dataset.lang;
+  document.querySelectorAll('.langs button').forEach(x=>x.classList.toggle('on',x===b));
+  txt(); paint();
+});
+
+/* ---------- login ---------- */
+$('#loginBtn').onclick=async()=>{
+  key=$('#key').value.trim(); $('#loginErr').hidden=true;
+  try{
+    cfg=await api('adminLogin');
+    sessionStorage.setItem('nb_key',key);
+    $('#login').hidden=true; $('#app').hidden=false;
+    $('#salonName').textContent=cfg.salon.name;
+    $('#datePick').value=date;
+    load();
+  }catch(e){ $('#loginErr').textContent=e.message; $('#loginErr').hidden=false; }
+};
+$('#key').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#loginBtn').click(); });
+$('#logout').onclick=()=>{ sessionStorage.removeItem('nb_key'); location.reload(); };
+(function(){const k=sessionStorage.getItem('nb_key'); if(k){$('#key').value=k; $('#loginBtn').click();}})();
+
+/* ---------- vy + navigering ---------- */
+$('#tabDay').onclick =()=>{ view='day';  syncTabs(); load(); };
+$('#tabWeek').onclick=()=>{ view='week'; syncTabs(); load(); };
+function syncTabs(){
+  $('#tabDay').classList.toggle('on',view==='day');
+  $('#tabWeek').classList.toggle('on',view==='week');
+  $('#cols').hidden = view!=='day';
+  $('#week').hidden = view!=='week';
+}
+$('#prev').onclick=()=>{ date=addDays(date, view==='day'?-1:-7); $('#datePick').value=date; load(); };
+$('#next').onclick=()=>{ date=addDays(date, view==='day'? 1: 7); $('#datePick').value=date; load(); };
+$('#todayBtn').onclick=()=>{ date=todayISO(); $('#datePick').value=date; load(); };
+$('#datePick').onchange=e=>{ date=e.target.value; load(); };
+
+async function load(){
+  try{
+    if(view==='day'){ day=await api('adminDay',{date}); }
+    else{ const from=monday(date); weekData=await api('adminRange',{from,to:addDays(from,6)}); }
+    paint();
+  }catch(e){ $('#cols').innerHTML='<p class="none">'+e.message+'</p>'; }
+}
+
+/* ---------- rita ---------- */
+function paint(){ txt(); syncTabs(); view==='day'?paintDay():paintWeek(); }
+
+function setSum(tot){
+  $('#sCount').textContent=tot.count;
+  $('#sRev').textContent=tot.revenue.toLocaleString('sv-SE')+' kr';
+  $('#sTime').textContent=(tot.minutes/60).toFixed(1).replace('.0','')+' h';
+}
+
+function paintDay(){
+  if(!day) return;
+  const d=new Date(day.date+'T12:00:00');
+  $('#tTitle').textContent=d.toLocaleDateString(locale(),{day:'numeric',month:'long'});
+  $('#tSub').textContent=WD[lang][d.getDay()];
+  setSum(day.totals);
+
+  const box=$('#cols'); box.innerHTML='';
+  const salonBlocks=day.blocks.filter(b=>b.staffId.toUpperCase()==='ALLA');
+  cfg.staff.forEach((st,i)=>{
+    const mine=day.bookings.filter(b=>b.staffId===st.id);
+    const act=mine.filter(b=>b.status.toLowerCase()!=='avbokad');
+    const blocks=day.blocks.filter(b=>b.staffId===st.id).concat(salonBlocks);
+    const col=document.createElement('div'); col.className='col';
+    col.innerHTML=`<h3><span class="dot" style="background:${SWATCH[i%SWATCH.length]}"></span>${st.name}
+      <small>${act.length} · ${act.reduce((s,b)=>s+b.price,0)} kr</small></h3>`;
+
+    const items=[]
+      .concat(mine.map(b=>({sort:b.time,type:'bk',b})))
+      .concat(blocks.map(b=>({sort:b.start,type:'blk',b})))
+      .sort((a,c)=>a.sort<c.sort?-1:1);
+
+    if(!items.length) col.innerHTML+=`<p class="none">${t('none')}</p>`;
+    items.forEach(it=>{
+      if(it.type==='bk'){
+        const b=it.b, s=b.status.toLowerCase();
+        const cls=s==='avbokad'?'avbokad':s==='klar'?'klar':s==='no-show'?'noshow':'';
+        const el=document.createElement('button'); el.className='bk '+cls;
+        el.innerHTML=`<div class="r1"><span>${b.time}–${b.end}</span><em>${b.price} kr</em></div>
+          <div class="r2">${b.service}</div>
+          <div class="r3"><span>${b.customer||''}${b.phone?' · '+b.phone:''}</span><span>${b.status}</span></div>`;
+        el.onclick=()=>openBooking(b);
+        col.appendChild(el);
+      }else{
+        const b=it.b;
+        const el=document.createElement('div'); el.className='blk';
+        const all=b.staffId.toUpperCase()==='ALLA';
+        el.innerHTML=`<b>${b.start}–${b.end}</b> ${b.reason||''}${all?' ('+t('allStaff')+')':''}`;
+        const x=document.createElement('button'); x.className='x'; x.textContent='×';
+        x.onclick=()=>delBlock(b.id);
+        el.appendChild(x);
+        col.appendChild(el);
+      }
+    });
+    box.appendChild(col);
+  });
+}
+
+function paintWeek(){
+  if(!weekData) return;
+  const a=new Date(weekData.from+'T12:00:00'), b=new Date(weekData.to+'T12:00:00');
+  $('#tTitle').textContent=a.toLocaleDateString(locale(),{day:'numeric',month:'short'})+' – '+
+                           b.toLocaleDateString(locale(),{day:'numeric',month:'short'});
+  $('#tSub').textContent=t('week');
+  setSum(weekData.totals);
+
+  const box=$('#week'); box.innerHTML='';
+  weekData.days.forEach(dy=>{
+    const d=new Date(dy.date+'T12:00:00');
+    const el=document.createElement('div');
+    el.className='wd'+(dy.date===todayISO()?' today':'');
+    const h=document.createElement('h4');
+    h.innerHTML=`${WDS[lang][d.getDay()]}<b>${d.getDate()}/${d.getMonth()+1}</b>`;
+    h.onclick=()=>{ date=dy.date; view='day'; $('#datePick').value=date; load(); };
+    el.appendChild(h);
+    const tot=document.createElement('div'); tot.className='tot';
+    tot.textContent=`${dy.totals.count} · ${dy.totals.revenue} kr`;
+    el.appendChild(tot);
+
+    const items=[]
+      .concat(dy.bookings.map(x=>({sort:x.time,type:'bk',x})))
+      .concat(dy.blocks.map(x=>({sort:x.start,type:'blk',x})))
+      .sort((p,q)=>p.sort<q.sort?-1:1);
+
+    if(!items.length){ const n=document.createElement('p'); n.className='none'; n.textContent='–'; el.appendChild(n); }
+    items.forEach(it=>{
+      if(it.type==='bk'){
+        const b=it.x;
+        const c=document.createElement('button');
+        c.className='chip'+(b.status.toLowerCase()==='avbokad'?' avbokad':'');
+        c.style.borderLeftColor=staffColor(b.staffId);
+        c.innerHTML=`<b>${b.time} · ${b.price} kr</b><span>${b.service}<br>${b.customer||''} · ${b.staff}</span>`;
+        c.onclick=()=>openBooking(b);
+        el.appendChild(c);
+      }else{
+        const b=it.x;
+        const c=document.createElement('div'); c.className='chip blkc';
+        c.innerHTML=`<b>${b.start}–${b.end}</b><span>${b.reason||''} · ${staffName(b.staffId)}</span>`;
+        el.appendChild(c);
+      }
+    });
+    box.appendChild(el);
+  });
+}
+
+/* ---------- bokningsmodal ---------- */
+$('#newBtn').onclick=()=>openBooking(null);
+$('#mClose').onclick=()=>$('#mask').classList.remove('on');
+$('#mask').onclick=e=>{ if(e.target===$('#mask')) $('#mask').classList.remove('on'); };
+
+function fillSelects(){
+  const sv=$('#mSvc'); sv.innerHTML='';
+  cfg.services.forEach(s=>{
+    const o=document.createElement('option'); o.value=s.id;
+    o.textContent=`${s.name[lang==='vi'?'vi':'sv']} · ${s.minutes} min · ${s.price} kr`;
+    sv.appendChild(o);
+  });
+  const st=$('#mStaff'); st.innerHTML='';
+  const any=document.createElement('option'); any.value='any'; any.textContent=t('anyStaff'); st.appendChild(any);
+  cfg.staff.forEach(s=>{ const o=document.createElement('option'); o.value=s.id; o.textContent=s.name; st.appendChild(o); });
+
+  const bs=$('#bStaff'); bs.innerHTML='';
+  const all=document.createElement('option'); all.value='ALLA'; all.textContent=t('allStaff'); bs.appendChild(all);
+  cfg.staff.forEach(s=>{ const o=document.createElement('option'); o.value=s.id; o.textContent=s.name; bs.appendChild(o); });
+}
+
+function openBooking(b){
+  edit=b; fillSelects(); txt();
+  $('#mErr').hidden=true; $('#mForce').checked=false;
+  $('#mTitle').textContent = b? t('editTitle') : t('newTitle');
+  $('#mCode').textContent  = b? b.code : '';
+  $('#mCancel').hidden     = !b;
+  $('#statusWrap').hidden  = !b;
+  $('#mSvc').value   = b? b.serviceId : cfg.services[0].id;
+  $('#mStaff').value = b? b.staffId : 'any';
+  $('#mDate').value  = b? b.date : (view==='day'? date : todayISO());
+  $('#mTime').value  = b? b.time : '';
+  $('#mName').value  = b? (b.customer||'') : '';
+  $('#mPhone').value = b? (b.phone||'') : '';
+  $('#mMail').value  = b? (b.email||'') : '';
+  $('#mNote').value  = b? (b.note||'') : '';
+  $('#mStatus').value= b? b.status : 'Bekräftad';
+  updatePrice(); loadSlots();
+  $('#mask').classList.add('on');
+}
+function updatePrice(){
+  const s=cfg.services.find(x=>x.id===$('#mSvc').value);
+  $('#mPrice').textContent = s? `${s.price} kr` : '–';
+}
+['#mSvc','#mStaff','#mDate'].forEach(sel=>{ $(sel).onchange=()=>{ updatePrice(); $('#mTime').value=''; loadSlots(); }; });
+
+async function loadSlots(){
+  const box=$('#mTimes'); box.innerHTML='<span class="none">…</span>';
+  try{
+    const r=await api('adminSlots',{date:$('#mDate').value,serviceId:$('#mSvc').value,
+      staffId:$('#mStaff').value,excludeCode:edit?edit.code:''});
+    box.innerHTML='';
+    if(!(r.slots||[]).length){ box.innerHTML=`<span class="none">${t('noTimes')}</span>`; return; }
+    r.slots.forEach(s=>{
+      const b=document.createElement('button');
+      b.className='time'+($('#mTime').value===s.time?' sel':'');
+      b.textContent=s.time;
+      b.onclick=()=>{ $('#mTime').value=s.time;
+        document.querySelectorAll('#mTimes .time').forEach(x=>x.classList.toggle('sel',x.textContent===s.time)); };
+      box.appendChild(b);
+    });
+  }catch(e){ box.innerHTML=`<span class="none">${e.message}</span>`; }
+}
+
+$('#mSave').onclick=async()=>{
+  $('#mErr').hidden=true;
+  const time=$('#mTime').value.trim(), name=$('#mName').value.trim();
+  if(!time && !$('#mForce').checked){ err('#mErr',t('pickTime')); return; }
+  if(!edit && !name){ err('#mErr',t('needName')); return; }
+  const btn=$('#mSave'), old=btn.textContent; btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  const p={date:$('#mDate').value, time:time||(edit?edit.time:''), serviceId:$('#mSvc').value,
+    staffId:$('#mStaff').value, customer:name, phone:$('#mPhone').value.trim(),
+    email:$('#mMail').value.trim(), note:$('#mNote').value.trim(), force:$('#mForce').checked};
+  try{
+    if(edit){ p.code=edit.code; p.status=$('#mStatus').value; await api('adminEdit',p); }
+    else{ await api('adminBook',p); }
+    $('#mask').classList.remove('on');
+    date=$('#mDate').value; $('#datePick').value=date;
+    await load();
+  }catch(e){ err('#mErr',e.message); }
+  finally{ btn.disabled=false; btn.textContent=old; }
+};
+
+$('#mCancel').onclick=async()=>{
+  if(!edit||!confirm(t('confirmCancel'))) return;
+  try{ await api('adminUpdate',{code:edit.code,status:'Avbokad'}); $('#mask').classList.remove('on'); load(); }
+  catch(e){ err('#mErr',e.message); }
+};
+
+/* ---------- spärrmodal ---------- */
+$('#blockBtn').onclick=()=>{
+  fillSelects(); txt();
+  $('#bErr').hidden=true;
+  $('#bDate').value = view==='day'? date : todayISO();
+  $('#bDateTo').value = $('#bDate').value;
+  $('#bStaff').value = cfg.staff[0] ? cfg.staff[0].id : 'ALLA';
+  $('#bReason').value='';
+  $('#bmask').classList.add('on');
+};
+$('#bClose').onclick=()=>$('#bmask').classList.remove('on');
+$('#bmask').onclick=e=>{ if(e.target===$('#bmask')) $('#bmask').classList.remove('on'); };
+
+document.querySelectorAll('.presets button').forEach(b=>b.onclick=()=>{
+  const p=b.dataset.p;
+  if(p==='lunch'){ $('#bStart').value='12:00'; $('#bEnd').value='13:00'; $('#bReason').value=lang==='vi'?'Nghỉ trưa':'Lunch'; }
+  if(p==='afternoon'){ $('#bStart').value='13:00'; $('#bEnd').value='19:00'; $('#bReason').value=lang==='vi'?'Nghỉ chiều':'Ledig eftermiddag'; }
+  if(p==='allday'){ $('#bStart').value='00:00'; $('#bEnd').value='23:59'; $('#bReason').value=lang==='vi'?'Nghỉ':'Ledig'; }
+});
+
+$('#bSave').onclick=async()=>{
+  $('#bErr').hidden=true;
+  const btn=$('#bSave'), old=btn.textContent; btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  try{
+    await api('adminBlockAdd',{
+      staffId:$('#bStaff').value, date:$('#bDate').value,
+      dateTo:$('#bDateTo').value || $('#bDate').value,
+      start:$('#bStart').value, end:$('#bEnd').value,
+      reason:$('#bReason').value.trim() || (lang==='vi'?'Khoá giờ':'Spärrad')
+    });
+    $('#bmask').classList.remove('on');
+    await load();
+  }catch(e){ err('#bErr',e.message); }
+  finally{ btn.disabled=false; btn.textContent=old; }
+};
+
+async function delBlock(id){
+  if(!id || !confirm(t('confirmDelBlock'))) return;
+  try{ await api('adminBlockDelete',{id}); await load(); }
+  catch(e){ alert(e.message); }
+}
+
+function err(sel,m){ const e=$(sel); e.textContent=m; e.hidden=false; e.scrollIntoView({block:'nearest'}); }
+</script>
+</body>
+</html>
