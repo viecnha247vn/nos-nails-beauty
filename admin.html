@@ -57,6 +57,43 @@ select{-webkit-appearance:none;appearance:none;
 .sum span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
 .sum div.rev b{color:var(--lacquer)}
 
+/* DAGSVY: lista */
+.list{display:flex;flex-direction:column;gap:8px;padding-bottom:80px}
+.li{display:flex;align-items:stretch;gap:0;background:#fff;border:1px solid var(--line);border-radius:12px;
+  overflow:hidden;cursor:pointer;text-align:left;padding:0;width:100%;transition:.12s}
+.li:hover{box-shadow:var(--shadow);transform:translateY(-1px)}
+.li .clock{flex:none;width:88px;padding:12px 10px;background:#FAF6F5;border-right:1px solid var(--line);
+  display:flex;flex-direction:column;justify-content:center;align-items:center}
+.li .clock b{font-size:17px;font-weight:700;line-height:1.15}
+.li .clock small{font-size:11px;color:var(--muted)}
+.li .body{flex:1;min-width:0;padding:11px 14px;display:flex;flex-direction:column;gap:3px}
+.li .svc{font-weight:700;font-size:15px}
+.li .cust{font-size:14px}
+.li .cust a{color:var(--brick);text-decoration:none;font-weight:600}
+.li .who{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.li .right{flex:none;padding:11px 14px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:6px}
+.li .price{font-weight:700;font-size:16px;color:var(--brick);white-space:nowrap}
+.pill{font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px;white-space:nowrap;
+  background:#EFEAE8;color:var(--muted)}
+.pill.ok{background:#EAF3EF;color:#2E7D5B}
+.pill.klar{background:#E7F1EC;color:#2E7D5B}
+.pill.no{background:#FBF0E2;color:#9A6A18}
+.pill.av{background:#F2EDEC;color:#8A7A76}
+.li.avbokad{opacity:.5}
+.li.avbokad .svc{text-decoration:line-through}
+.li.blkli{cursor:default;background:repeating-linear-gradient(45deg,#F7F2F0,#F7F2F0 6px,#EFE7E4 6px,#EFE7E4 12px)}
+.li.blkli .clock{background:transparent}
+.li .del{border:0;background:none;color:var(--muted);font-size:19px;cursor:pointer;padding:0 6px}
+.li .del:hover{color:var(--brick)}
+@media(max-width:520px){
+  .li .clock{width:72px;padding:10px 6px}
+  .li .clock b{font-size:15px}
+  .li .right{padding:11px 10px}
+}
+.vtabs{display:flex;background:#fff;border:1px solid var(--line);border-radius:99px;padding:3px}
+.vtabs button{border:0;background:none;padding:7px 14px;border-radius:99px;font-weight:600;font-size:13px;cursor:pointer;color:var(--muted)}
+.vtabs button.on{background:#EFE7E4;color:var(--ink)}
+
 /* DAGSVY: kolumn per tekniker */
 .cols{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));padding-bottom:80px}
 .col{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:var(--shadow)}
@@ -114,6 +151,8 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
 .presets{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
 .presets button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer}
 .presets button:hover{border-color:var(--ink)}
+.more{background:none;border:0;color:var(--brick);font-size:13px;font-weight:600;cursor:pointer;padding:4px 0;margin-bottom:6px}
+.more:hover{text-decoration:underline}
 .acts{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
 .acts .btn{flex:1;min-width:105px}
 .err{background:#FBEDEA;border:1px solid var(--brick);color:#6E2C25;padding:10px 12px;border-radius:10px;font-size:13px;margin-bottom:12px}
@@ -152,6 +191,10 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
       <div class="nav"><button id="prev">‹</button><button id="next">›</button></div>
       <button class="btn line sm" id="todayBtn" data-t="today">Idag</button>
       <input type="date" id="datePick" style="width:auto">
+      <div class="vtabs" id="vtabs">
+        <button id="vList" class="on" data-t="vList">Lista</button>
+        <button id="vCols" data-t="vCols">Per tekniker</button>
+      </div>
     </div>
 
     <div class="sum">
@@ -160,7 +203,8 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
       <div><b id="sTime">0 h</b><span data-t="sHours">Bokad tid</span></div>
     </div>
 
-    <div class="cols" id="cols"></div>
+    <div class="list" id="list"></div>
+    <div class="cols" id="cols" hidden></div>
     <div class="week" id="week" hidden></div>
   </div>
 
@@ -190,21 +234,24 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
     <div class="chk"><input type="checkbox" id="mForce"><label for="mForce" style="margin:0;font-weight:400" data-t="lForce">Boka ändå (ignorera krock)</label></div>
 
     <div class="two">
-      <div class="field"><label data-t="lName">Kund</label><input type="text" id="mName"></div>
-      <div class="field"><label data-t="lPhone">Telefon</label><input type="tel" id="mPhone"></div>
+      <div class="field"><label data-t="lName">Kund</label><input type="text" id="mName" placeholder="Drop-in"></div>
+      <div class="field"><label data-t="lPhone">Telefon</label><input type="tel" id="mPhone" inputmode="tel"></div>
     </div>
-    <div class="two">
+
+    <div class="field" id="statusWrap"><label data-t="lStatus">Status</label>
+      <select id="mStatus">
+        <option value="Bekräftad">Bekräftad</option>
+        <option value="Klar">Klar</option>
+        <option value="No-show">No-show</option>
+        <option value="Avbokad">Avbokad</option>
+      </select>
+    </div>
+
+    <button class="more" id="moreBtn" data-t="more">+ E-post och anteckning</button>
+    <div id="extra" hidden>
       <div class="field"><label data-t="lMail">E-post</label><input type="email" id="mMail"></div>
-      <div class="field" id="statusWrap"><label data-t="lStatus">Status</label>
-        <select id="mStatus">
-          <option value="Bekräftad">Bekräftad</option>
-          <option value="Klar">Klar</option>
-          <option value="No-show">No-show</option>
-          <option value="Avbokad">Avbokad</option>
-        </select>
-      </div>
+      <div class="field"><label data-t="lNote">Anteckning</label><input type="text" id="mNote"></div>
     </div>
-    <div class="field"><label data-t="lNote">Anteckning</label><input type="text" id="mNote"></div>
 
     <div class="acts">
       <button class="btn line" id="mClose" data-t="close">Stäng</button>
@@ -252,11 +299,11 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbxAgRKP5UWX9V8O4OqlJpAQ
 
 const T={
  sv:{loginH:'Adminpanel',loginP:'Ange adminnyckeln från fliken Settings.',loginB:'Logga in',logout:'Logga ut',
-  tabDay:'Dag',tabWeek:'Vecka',today:'Idag',sBookings:'Bokningar',sRevenue:'Värde',sHours:'Bokad tid',
+  tabDay:'Dag',tabWeek:'Vecka',vList:'Lista',vCols:'Per tekniker',phoneCall:'Ring',today:'Idag',sBookings:'Bokningar',sRevenue:'Värde',sHours:'Bokad tid',
   newB:'+ Ny bokning',blockB:'Spärra tid',
   lSvc:'Behandling',lStaff:'Tekniker',lPrice:'Pris',lDate:'Datum',lTimeNow:'Vald tid',lFree:'Lediga tider',
   lForce:'Boka ändå (ignorera krock)',lName:'Kund',lPhone:'Telefon',lMail:'E-post',lStatus:'Status',lNote:'Anteckning',
-  close:'Stäng',cancelB:'Avboka',save:'Spara',newTitle:'Ny bokning',editTitle:'Ändra bokning',
+  close:'Stäng',cancelB:'Avboka',save:'Spara',newTitle:'Ny bokning',editTitle:'Ändra bokning',more:'+ E-post och anteckning',
   blockH:'Spärra tid',blockP:'Lunch, sjukdom, semester – teknikern går inte att boka.',blockSave:'Spärra',
   pLunch:'Lunch 12–13',pAfter:'Eftermiddag',pAll:'Hela dagen',
   lFrom:'Från datum',lTo:'Till datum',lStart:'Start',lEnd:'Slut',lReason:'Orsak',allStaff:'Hela salongen',
@@ -264,11 +311,11 @@ const T={
   pickTime:'Välj en tid.',needName:'Ange kundens namn.',anyStaff:'Först ledig',
   confirmCancel:'Avboka den här tiden?',confirmDelBlock:'Ta bort spärren?',week:'Vecka'},
  vi:{loginH:'Trang quản lý',loginP:'Nhập adminKey trong tab Settings.',loginB:'Đăng nhập',logout:'Thoát',
-  tabDay:'Ngày',tabWeek:'Tuần',today:'Hôm nay',sBookings:'Lượt khách',sRevenue:'Doanh thu',sHours:'Giờ đã kín',
+  tabDay:'Ngày',tabWeek:'Tuần',vList:'Danh sách',vCols:'Theo thợ',phoneCall:'Gọi',today:'Hôm nay',sBookings:'Lượt khách',sRevenue:'Doanh thu',sHours:'Giờ đã kín',
   newB:'+ Thêm lịch',blockB:'Khoá giờ',
   lSvc:'Dịch vụ',lStaff:'Thợ',lPrice:'Giá',lDate:'Ngày',lTimeNow:'Giờ đã chọn',lFree:'Giờ còn trống',
   lForce:'Vẫn xếp (bỏ qua trùng giờ)',lName:'Khách',lPhone:'Điện thoại',lMail:'Email',lStatus:'Trạng thái',lNote:'Ghi chú',
-  close:'Đóng',cancelB:'Huỷ lịch',save:'Lưu',newTitle:'Thêm lịch',editTitle:'Sửa lịch',
+  close:'Đóng',cancelB:'Huỷ lịch',save:'Lưu',newTitle:'Thêm lịch',editTitle:'Sửa lịch',more:'+ Email và ghi chú',
   blockH:'Khoá giờ',blockP:'Nghỉ trưa, nghỉ ốm, nghỉ phép — khách không đặt được thợ này.',blockSave:'Khoá',
   pLunch:'Nghỉ trưa 12–13',pAfter:'Nghỉ chiều',pAll:'Nghỉ cả ngày',
   lFrom:'Từ ngày',lTo:'Đến ngày',lStart:'Bắt đầu',lEnd:'Kết thúc',lReason:'Lý do',allStaff:'Cả tiệm',
@@ -280,7 +327,7 @@ const WD ={sv:['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag
 const WDS={sv:['Sön','Mån','Tis','Ons','Tor','Fre','Lör'],vi:['CN','T2','T3','T4','T5','T6','T7']};
 const SWATCH=['#8C3A31','#C08457','#8FAE9B','#6E2C25','#B5674F','#3E2B27'];
 
-let lang='sv', key='', cfg=null, view='day', date=todayISO(), day=null, weekData=null, edit=null;
+let lang='sv', key='', cfg=null, view='day', dayMode='list', date=todayISO(), day=null, weekData=null, edit=null;
 
 const $=s=>document.querySelector(s);
 const t=k=>T[lang][k]||T.sv[k]||k;
@@ -328,8 +375,20 @@ $('#tabWeek').onclick=()=>{ view='week'; syncTabs(); load(); };
 function syncTabs(){
   $('#tabDay').classList.toggle('on',view==='day');
   $('#tabWeek').classList.toggle('on',view==='week');
-  $('#cols').hidden = view!=='day';
+  $('#vtabs').hidden = view!=='day';
+  $('#vList').classList.toggle('on',dayMode==='list');
+  $('#vCols').classList.toggle('on',dayMode==='cols');
+  $('#list').hidden = !(view==='day' && dayMode==='list');
+  $('#cols').hidden = !(view==='day' && dayMode==='cols');
   $('#week').hidden = view!=='week';
+}
+$('#vList').onclick=()=>{ dayMode='list'; paint(); };
+$('#vCols').onclick=()=>{ dayMode='cols'; paint(); };
+
+function statusPill(st){
+  const s=String(st||'').toLowerCase();
+  const cls=s==='avbokad'?'av':s==='klar'?'klar':s==='no-show'?'no':'ok';
+  return `<span class="pill ${cls}">${st}</span>`;
 }
 $('#prev').onclick=()=>{ date=addDays(date, view==='day'?-1:-7); $('#datePick').value=date; load(); };
 $('#next').onclick=()=>{ date=addDays(date, view==='day'? 1: 7); $('#datePick').value=date; load(); };
@@ -359,6 +418,7 @@ function paintDay(){
   $('#tTitle').textContent=d.toLocaleDateString(locale(),{day:'numeric',month:'long'});
   $('#tSub').textContent=WD[lang][d.getDay()];
   setSum(day.totals);
+  paintList();
 
   const box=$('#cols'); box.innerHTML='';
   const salonBlocks=day.blocks.filter(b=>b.staffId.toUpperCase()==='ALLA');
@@ -398,6 +458,48 @@ function paintDay(){
       }
     });
     box.appendChild(col);
+  });
+}
+
+function paintList(){
+  const box=$('#list'); box.innerHTML='';
+  const items=[]
+    .concat(day.bookings.map(b=>({sort:b.time,type:'bk',b})))
+    .concat(day.blocks.map(b=>({sort:b.start,type:'blk',b})))
+    .sort((a,c)=>a.sort<c.sort?-1:1);
+
+  if(!items.length){ box.innerHTML=`<p class="none">${t('none')}</p>`; return; }
+
+  items.forEach(it=>{
+    if(it.type==='bk'){
+      const b=it.b, st=String(b.status).toLowerCase();
+      const el=document.createElement('button');
+      el.className='li'+(st==='avbokad'?' avbokad':'');
+      el.innerHTML=`
+        <div class="clock"><b>${b.time}</b><small>${b.end}</small></div>
+        <div class="body">
+          <span class="svc">${b.service}</span>
+          <span class="cust">${b.customer||'–'}${b.phone?' · <a href="tel:'+String(b.phone).replace(/\s/g,'')+'">'+b.phone+'</a>':''}</span>
+          <span class="who"><i class="dot" style="background:${staffColor(b.staffId)}"></i>${b.staff} · ${b.minutes} min${b.note?' · '+b.note:''}</span>
+        </div>
+        <div class="right"><span class="price">${b.price} kr</span>${statusPill(b.status)}</div>`;
+      el.querySelectorAll('a').forEach(a=>a.onclick=e=>e.stopPropagation());
+      el.onclick=()=>openBooking(b);
+      box.appendChild(el);
+    }else{
+      const b=it.b, all=b.staffId.toUpperCase()==='ALLA';
+      const el=document.createElement('div');
+      el.className='li blkli';
+      el.innerHTML=`
+        <div class="clock"><b>${b.start}</b><small>${b.end}</small></div>
+        <div class="body">
+          <span class="svc">${b.reason||'Spärrad'}</span>
+          <span class="who"><i class="dot" style="background:${all?'#8A7A76':staffColor(b.staffId)}"></i>${all?t('allStaff'):staffName(b.staffId)}</span>
+        </div>
+        <div class="right"><button class="del" title="×">×</button></div>`;
+      el.querySelector('.del').onclick=()=>delBlock(b.id);
+      box.appendChild(el);
+    }
   });
 }
 
@@ -485,8 +587,13 @@ function openBooking(b){
   $('#mMail').value  = b? (b.email||'') : '';
   $('#mNote').value  = b? (b.note||'') : '';
   $('#mStatus').value= b? b.status : 'Bekräftad';
+  // hiện sẵn phần email/ghi chú nếu lịch cũ đã có dữ liệu
+  const hasExtra = b && ((b.email||'').trim() || (b.note||'').trim());
+  $('#extra').hidden = !hasExtra;
+  $('#moreBtn').hidden = !!hasExtra;
   updatePrice(); loadSlots();
   $('#mask').classList.add('on');
+  setTimeout(()=>{ if(!b) $('#mName').focus(); },80);
 }
 function updatePrice(){
   const s=cfg.services.find(x=>x.id===$('#mSvc').value);
@@ -512,15 +619,18 @@ async function loadSlots(){
   }catch(e){ box.innerHTML=`<span class="none">${e.message}</span>`; }
 }
 
+$('#moreBtn').onclick=()=>{ $('#extra').hidden=false; $('#moreBtn').hidden=true; };
+
 $('#mSave').onclick=async()=>{
   $('#mErr').hidden=true;
-  const time=$('#mTime').value.trim(), name=$('#mName').value.trim();
+  const time=$('#mTime').value.trim();
+  const name=$('#mName').value.trim() || (edit? '' : 'Drop-in');   // để trống = Drop-in
   if(!time && !$('#mForce').checked){ err('#mErr',t('pickTime')); return; }
-  if(!edit && !name){ err('#mErr',t('needName')); return; }
   const btn=$('#mSave'), old=btn.textContent; btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
   const p={date:$('#mDate').value, time:time||(edit?edit.time:''), serviceId:$('#mSvc').value,
     staffId:$('#mStaff').value, customer:name, phone:$('#mPhone').value.trim(),
     email:$('#mMail').value.trim(), note:$('#mNote').value.trim(), force:$('#mForce').checked};
+  if(!edit && !p.customer) p.customer='Drop-in';
   try{
     if(edit){ p.code=edit.code; p.status=$('#mStatus').value; await api('adminEdit',p); }
     else{ await api('adminBook',p); }
