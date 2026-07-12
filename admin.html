@@ -58,36 +58,39 @@ select{-webkit-appearance:none;appearance:none;
 .sum div.rev b{color:var(--lacquer)}
 
 /* DAGSVY: schema-rutnät 15 min */
-.grid{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:80px}
-.ghead{display:grid;position:sticky;top:var(--topH,56px);z-index:12;background:#fff;
-  border-bottom:2px solid var(--line);box-shadow:0 2px 6px rgba(42,31,29,.06)}
-.ghead .gh{padding:9px 8px;text-align:center;border-left:1px solid var(--line)}
+.grid{background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:80px;overflow:visible}
+.ghead{display:grid;position:sticky;top:var(--topH,56px);z-index:15;background:#fff;
+  border-bottom:2px solid var(--line);border-radius:11px 11px 0 0;
+  box-shadow:0 3px 8px rgba(42,31,29,.10)}
+.ghead .gh{padding:8px 4px;text-align:center;border-left:1px solid var(--line);min-width:0}
 .ghead .gh:first-child{border-left:0}
-.ghead .gh b{display:flex;align-items:center;justify-content:center;gap:6px;font-size:14px}
-.ghead .gh small{display:block;font-size:11px;margin-top:2px;font-weight:600}
+.ghead .gh b{display:flex;align-items:center;justify-content:center;gap:5px;font-size:13px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ghead .gh small{display:block;font-size:10px;margin-top:2px;font-weight:600;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ghead .gh small.free{color:#2E7D5B}
 .ghead .gh small.busy{color:var(--muted)}
-.gbody{display:grid;position:relative;overflow-x:auto}
+.gbody{display:grid;position:relative}
 .gtime{border-right:1px solid var(--line);background:#FBF8F7;padding-top:9px}
 .gtime div{height:22px;position:relative}
 .gtime div.hour{border-top:1px solid var(--line)}
 .gtime div.half{border-top:1px dashed #ECE5E2}
-.gtime div span{position:absolute;top:-8px;right:6px;font-size:10px;color:var(--muted);
-  background:#FBF8F7;padding:0 3px;line-height:1.5}
+.gtime div span{position:absolute;top:-8px;right:4px;font-size:10px;color:var(--muted);
+  background:#FBF8F7;padding:0 2px;line-height:1.5}
 .gtime div.hour span{font-weight:700;color:var(--ink);font-size:11px}
 .gcol{position:relative;border-left:1px solid var(--line);padding-top:9px}
 .cell{height:22px;border-top:1px dashed #F0EBE9;cursor:pointer}
 .cell.hour{border-top:1px solid var(--line)}
 .cell:hover{background:#FBF3F1}
 .cell.drop{background:#E7F3EF;box-shadow:inset 0 0 0 2px #2E7D5B}
-.ev{position:absolute;left:3px;right:3px;border-radius:7px;padding:4px 6px;overflow:hidden;cursor:grab;
+.ev{position:absolute;left:2px;right:2px;border-radius:7px;padding:4px 6px;overflow:hidden;cursor:grab;
   color:#fff;font-size:11px;line-height:1.25;box-shadow:0 2px 6px rgba(42,31,29,.18);touch-action:none;
-  border:1px solid rgba(255,255,255,.35)}
+  border:1px solid rgba(255,255,255,.35);z-index:3}
 .ev:active{cursor:grabbing}
 .ev b{display:block;font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ev span{opacity:.9;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ev.avbokad{opacity:.4}
-.ev.blk{background:repeating-linear-gradient(45deg,#9A8C87,#9A8C87 5px,#8A7A76 5px,#8A7A76 10px)!important;cursor:default}
+.ev.blk{background:repeating-linear-gradient(45deg,#9A8C87,#9A8C87 5px,#8A7A76 5px,#8A7A76 10px)!important;cursor:default;z-index:1;opacity:.9}
 .ev.drag{opacity:.55;box-shadow:0 8px 20px rgba(42,31,29,.35);z-index:20}
 .nowline{position:absolute;left:0;right:0;height:2px;background:#D63B2F;z-index:9;pointer-events:none;margin-top:9px}
 .nowline:before{content:"";position:absolute;left:-4px;top:-3px;width:8px;height:8px;border-radius:50%;background:#D63B2F}
@@ -679,7 +682,7 @@ function paintGrid(){
   const step=cfg.slotStep||15, open=toMin(h.open), close=toMin(h.close);
   const rows=Math.ceil((close-open)/step);
   const staff=cfg.staff;
-  const cols=`58px repeat(${staff.length},minmax(120px,1fr))`;
+  const cols=`46px repeat(${staff.length},minmax(0,1fr))`;
 
   // ---- đầu cột: tên thợ + trạng thái rảnh ----
   const head=document.createElement('div'); head.className='ghead'; head.style.gridTemplateColumns=cols;
