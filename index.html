@@ -67,6 +67,14 @@ button,input,textarea{font:inherit;color:inherit}
 .info .rows{margin-top:12px;display:grid;gap:5px;font-size:14px;color:rgba(255,255,255,.85)}
 .info .rows div{display:flex;gap:9px}
 .info .rows b{color:#fff;font-weight:600}
+.info .rows a.tel{color:#fff;font-weight:700;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.5);
+  padding-bottom:1px}
+.info .rows a.tel:hover{border-bottom-color:#fff}
+.callbtn{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:#fff;
+  text-decoration:none;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);
+  padding:6px 13px;border-radius:99px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.callbtn:hover{background:rgba(255,255,255,.28)}
+footer a.tel{color:var(--brick);font-weight:600;text-decoration:none}
 .hrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px}
 .hlink{background:none;border:0;color:rgba(255,255,255,.85);font-size:13px;font-weight:600;cursor:pointer;
   text-decoration:underline;text-underline-offset:3px;padding:4px 0}
@@ -236,12 +244,13 @@ footer a{color:var(--brick)}
   </div>
   <div class="rows">
     <div><span>📍</span><span id="sAddr"></span></div>
-    <div><span>📞</span><b id="sPhone"></b></div>
+    <div><span>📞</span><a id="sPhone" class="tel" href="#"></a></div>
     <div><span>🕐</span><span id="sToday"></span></div>
   </div>
   <div class="hrow">
     <div class="badge" id="openNow" hidden><i></i><span></span></div>
     <button class="hlink" id="hToggle" data-t="allHours">Alla öppettider ▾</button>
+    <a class="callbtn" id="callBtn" href="#"><span>📞</span><span data-t="callUs">Ring oss</span></a>
   </div>
   <div class="htable" id="hTable" hidden></div>
 </div></div>
@@ -326,7 +335,8 @@ footer a{color:var(--brick)}
 </div>
 
 <footer>
-  <span id="fSalon"></span> · <span id="fSocial"></span><br>
+  <span id="fSalon"></span> · <a class="tel" id="fPhoneLink" href="#"></a><br>
+  <span id="fSocial"></span> · 
   <a href="#" id="fCancel" data-t="cancelLink">Avboka en tid</a>
 </footer>
 
@@ -337,7 +347,7 @@ const T={
  sv:{h1:'Välj behandling',h2:'Välj tid',h3:'Dina uppgifter',loading:'Laddar…',
   fName:'Namn',fPhone:'Telefon',fMail:'E-post',fNote:'Meddelande (valfritt)',
   next:'Nästa',back:'Tillbaka',confirm:'Bekräfta bokning',pickSvc:'Välj en behandling',
-  pick:'Välj',picked:'Vald',anyStaff:'Alla',open:'Öppet nu',closed:'Stängt nu',allHours:'Alla öppettider ▾',hideHours:'Dölj ▴',shut:'Stängt',todayIs:'Idag',
+  pick:'Välj',picked:'Vald',anyStaff:'Alla',open:'Öppet nu',closed:'Stängt nu',callUs:'Ring oss',allHours:'Alla öppettider ▾',hideHours:'Dölj ▴',shut:'Stängt',todayIs:'Idag',
   today:'Idag',tomorrow:'Imorgon',firstFree:'⚡ Första lediga',calendar:'📅 Välj datum',legFree:'Lediga tider',legFull:'Fullbokat / stängt',
   morning:'Förmiddag',afternoon:'Eftermiddag',evening:'Kväll',
   tapHint:'Tryck på en tid så går du direkt vidare.',
@@ -350,7 +360,7 @@ const T={
  en:{h1:'Choose a treatment',h2:'Choose a time',h3:'Your details',loading:'Loading…',
   fName:'Name',fPhone:'Phone',fMail:'Email',fNote:'Message (optional)',
   next:'Next',back:'Back',confirm:'Confirm booking',pickSvc:'Choose a treatment',
-  pick:'Select',picked:'Selected',anyStaff:'Anyone',open:'Open now',closed:'Closed now',allHours:'All opening hours ▾',hideHours:'Hide ▴',shut:'Closed',todayIs:'Today',
+  pick:'Select',picked:'Selected',anyStaff:'Anyone',open:'Open now',closed:'Closed now',callUs:'Call us',allHours:'All opening hours ▾',hideHours:'Hide ▴',shut:'Closed',todayIs:'Today',
   today:'Today',tomorrow:'Tomorrow',firstFree:'⚡ First available',calendar:'📅 Pick a date',legFree:'Free times',legFull:'Fully booked / closed',
   morning:'Morning',afternoon:'Afternoon',evening:'Evening',
   tapHint:'Tap a time and you go straight on.',
@@ -363,7 +373,7 @@ const T={
  vi:{h1:'Chọn dịch vụ',h2:'Chọn giờ',h3:'Thông tin của bạn',loading:'Đang tải…',
   fName:'Họ tên',fPhone:'Điện thoại',fMail:'Email',fNote:'Ghi chú (không bắt buộc)',
   next:'Tiếp',back:'Quay lại',confirm:'Xác nhận đặt lịch',pickSvc:'Chọn dịch vụ',
-  pick:'Chọn',picked:'Đã chọn',anyStaff:'Thợ nào cũng được',open:'Đang mở cửa',closed:'Đang đóng cửa',allHours:'Xem cả tuần ▾',hideHours:'Thu gọn ▴',shut:'Nghỉ',todayIs:'Hôm nay',
+  pick:'Chọn',picked:'Đã chọn',anyStaff:'Thợ nào cũng được',open:'Đang mở cửa',closed:'Đang đóng cửa',callUs:'Gọi tiệm',allHours:'Xem cả tuần ▾',hideHours:'Thu gọn ▴',shut:'Nghỉ',todayIs:'Hôm nay',
   today:'Hôm nay',tomorrow:'Ngày mai',firstFree:'⚡ Giờ sớm nhất',calendar:'📅 Chọn ngày',legFree:'Còn chỗ',legFull:'Kín / nghỉ',
   morning:'Buổi sáng',afternoon:'Buổi chiều',evening:'Buổi tối',
   tapHint:'Bấm vào giờ là qua bước tiếp theo luôn.',
@@ -401,6 +411,14 @@ function showErr(m){const e=$('#err');e.textContent=m||'';e.hidden=!m;if(m)e.scr
 function txt(){document.querySelectorAll('[data-t]').forEach(e=>e.textContent=t(e.dataset.t));}
 const scrollTop=()=>window.scrollTo({top:0,behavior:'smooth'});
 
+/* 073-936 16 55 → tel:+46739361655 */
+function telHref(p){
+  let d=String(p||'').replace(/[^\d+]/g,'');
+  if(d.startsWith('00')) d='+'+d.slice(2);
+  if(d.startsWith('0'))  d='+46'+d.slice(1);
+  return 'tel:'+d;
+}
+
 document.querySelectorAll('.langs button').forEach(b=>b.onclick=()=>{
   lang=b.dataset.lang;
   document.querySelectorAll('.langs button').forEach(x=>x.classList.toggle('on',x===b));
@@ -415,7 +433,11 @@ document.querySelectorAll('.langs button').forEach(b=>b.onclick=()=>{
     $('#fSalon').textContent=cfg.salon.name;
     $('#fSocial').textContent=cfg.salon.social||'';
     $('#sAddr').textContent=cfg.salon.address||'';
-    $('#sPhone').textContent=cfg.salon.phone||'';
+    const ph=cfg.salon.phone||'';
+    const tel=telHref(ph);
+    $('#sPhone').textContent=ph; $('#sPhone').href=tel;
+    $('#callBtn').href=tel;
+    $('#fPhoneLink').textContent=ph; $('#fPhoneLink').href=tel;
     render();
   }catch(e){ showErr(e.message); }
 })();
@@ -496,6 +518,7 @@ function drawServices(){
 
 async function chooseService(s){
   sel.svc=s; sel.staff='any'; sel.date=null; sel.time=null; slots=[]; days=[];
+  Object.keys(calCache).forEach(k=>delete calCache[k]);
   stripFrom=todayISO();
   step=2; render(); scrollTop();
   await loadDays(true, todayISO());
@@ -536,7 +559,7 @@ async function loadDays(auto,from){
   stripFrom = from || stripFrom || todayISO();
   $('#dates').innerHTML=`<div class="msg" style="width:100%">${t('loading')}</div>`;
   try{
-    const r=await api('getDays',{serviceId:sel.svc.id,staffId:sel.staff,days:21,from:stripFrom});
+    const r=await api('getDays',{serviceId:sel.svc.id,staffId:sel.staff,days:21,from:stripFrom,withTimes:true});
     days=r.days||[];
     horizon=r.horizon||'';
     drawDates();
@@ -545,7 +568,19 @@ async function loadDays(auto,from){
       if(first) pickDate(first.date);
       else { slots=[]; $('#times').innerHTML=`<div class="msg">${t('noneAtAll')}</div>`; }
     }
+    prefetchNext();
   }catch(e){ showErr(e.message); $('#dates').innerHTML=''; }
+}
+
+const nextCache={};
+async function prefetchNext(){
+  const from=addDays(stripFrom,21);
+  const ck=`${from}|${sel.svc.id}|${sel.staff}`;
+  if(nextCache[ck]) return;
+  try{
+    const r=await api('getDays',{serviceId:sel.svc.id,staffId:sel.staff,days:21,from,withTimes:true});
+    nextCache[ck]=r.days||[];
+  }catch(e){}
 }
 
 function drawDates(){
@@ -571,7 +606,12 @@ function drawDates(){
 }
 
 $('#dPrev').onclick=()=>{ const f=addDays(stripFrom,-21); loadDays(false, f<todayISO()?todayISO():f); };
-$('#dNext').onclick=()=>{ loadDays(false, addDays(stripFrom,21)); };
+$('#dNext').onclick=()=>{
+  const from=addDays(stripFrom,21);
+  const ck=`${from}|${sel.svc.id}|${sel.staff}`;
+  if(nextCache[ck]){ stripFrom=from; days=nextCache[ck]; drawDates(); prefetchNext(); return; }
+  loadDays(false, from);
+};
 const addDays=(s,n)=>{ const d=new Date(s+'T12:00:00'); d.setDate(d.getDate()+n); return iso(d); };
 
 /* ---------- lịch tháng ---------- */
@@ -590,6 +630,8 @@ function openCal(){
   loadCal();
 }
 
+const calCache={};   // key: 'yyyy-mm|svc|staff'
+
 async function loadCal(){
   const y=calMonth.getFullYear(), m=calMonth.getMonth();
   $('#cMonth').textContent = calMonth.toLocaleDateString(loc(),{month:'long',year:'numeric'});
@@ -603,11 +645,14 @@ async function loadCal(){
   $('#cPrev').disabled = (y===new Date().getFullYear() && m<=new Date().getMonth()) || new Date(y,m,1)<monthStart(new Date());
   $('#cNext').disabled = !!horizon && iso(first) > horizon;
 
-  let data=[];
-  try{
-    const r=await api('getDays',{serviceId:sel.svc.id,staffId:sel.staff,from:from,days:last.getDate()});
-    data=r.days||[]; horizon=r.horizon||horizon;
-  }catch(e){ $('#cDays').innerHTML=`<span style="grid-column:span 7;color:var(--grey);text-align:center">${e.message}</span>`; return; }
+  const ck=`${y}-${m}|${sel.svc.id}|${sel.staff}`;
+  let data=calCache[ck];
+  if(!data){
+    try{
+      const r=await api('getDays',{serviceId:sel.svc.id,staffId:sel.staff,from:from,days:last.getDate()});
+      data=r.days||[]; horizon=r.horizon||horizon; calCache[ck]=data;
+    }catch(e){ $('#cDays').innerHTML=`<span style="grid-column:span 7;color:var(--grey);text-align:center">${e.message}</span>`; return; }
+  }
   calDays=data;
 
   const box=$('#cDays'); box.innerHTML='';
@@ -635,10 +680,18 @@ async function pickDate(d){
   if(dd && dd.count===0) return;
   sel.date=d; sel.time=null;
   drawQuick(); drawDates();
+
+  // Giờ trống đã tải sẵn cùng dải ngày → hiện ngay, không cần gọi server
+  if(dd && dd.times){
+    slots=dd.times.map(x=>({time:x}));
+    drawTimes(dd.closed); drawBar();
+    return;
+  }
   $('#times').innerHTML=`<div class="msg">${t('loading')}</div>`;
   try{
     const r=await api('getSlots',{date:d,serviceId:sel.svc.id,staffId:sel.staff});
     slots=r.slots||[]; drawTimes(r.closed); drawBar();
+    if(dd) dd.times=r.slots.map(x=>x.time);
   }catch(e){ showErr(e.message); $('#times').innerHTML=''; }
 }
 
