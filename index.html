@@ -119,6 +119,7 @@ label{display:block;font-size:13px;font-weight:600;margin-bottom:5px}
 input,textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:12px 13px;background:#fff}
 input:focus,textarea:focus{outline:0;border-color:var(--brick);box-shadow:0 0 0 3px rgba(140,58,49,.12)}
 textarea{min-height:70px;resize:vertical}
+.mailnote{font-size:12px;color:var(--grey);margin-top:5px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:520px){.two{grid-template-columns:1fr}}
 
@@ -202,7 +203,8 @@ footer a{color:var(--brick)}
           <div class="field"><label data-t="fName">Namn</label><input id="fName" autocomplete="name"></div>
           <div class="field"><label data-t="fPhone">Telefon</label><input id="fPhone" type="tel" autocomplete="tel" placeholder="070-123 45 67"></div>
         </div>
-        <div class="field"><label data-t="fMail">E-post</label><input id="fMail" type="email" autocomplete="email"></div>
+        <div class="field"><label data-t="fMail">E-post</label><input id="fMail" type="email" autocomplete="email" placeholder="namn@exempel.se">
+          <p class="mailnote" data-t="mailNote">Bekräftelsen skickas hit.</p></div>
         <div class="field"><label data-t="fNote">Meddelande (valfritt)</label><textarea id="fNote"></textarea></div>
       </div>
     </div>
@@ -249,7 +251,7 @@ const T={
   free:'lediga',doneH:'Tiden är bokad',doneNo:'Bokningsnummer:',doneNote:'Bekräftelse skickas till din e-post.',
   again:'Boka en till tid',cancelLink:'Avboka en tid',
   rDate:'Datum',rTime:'Tid',rSvc:'Behandling',rStaff:'Tekniker',rPrice:'Pris',
-  fill:'Fyll i namn och telefon.',min:'min',kr:'kr',
+  fill:'Fyll i namn och telefon.',fillMail:'Fyll i en giltig e-postadress.',mailNote:'Bekräftelsen skickas hit.',min:'min',kr:'kr',
   cPrompt:'Ange ditt bokningsnummer:',cPhone:'Ange telefonnumret du bokade med:',cOk:'Bokningen är avbokad.'},
  en:{h1:'Choose a treatment',h2:'Choose a time',h3:'Your details',loading:'Loading…',
   fName:'Name',fPhone:'Phone',fMail:'Email',fNote:'Message (optional)',
@@ -262,7 +264,7 @@ const T={
   free:'free',doneH:'Your time is booked',doneNo:'Booking number:',doneNote:'A confirmation is sent to your email.',
   again:'Book another time',cancelLink:'Cancel a booking',
   rDate:'Date',rTime:'Time',rSvc:'Treatment',rStaff:'Technician',rPrice:'Price',
-  fill:'Please fill in name and phone.',min:'min',kr:'SEK',
+  fill:'Please fill in name and phone.',fillMail:'Please enter a valid email address.',mailNote:'The confirmation is sent here.',min:'min',kr:'SEK',
   cPrompt:'Enter your booking number:',cPhone:'Enter the phone number you booked with:',cOk:'The booking is cancelled.'},
  vi:{h1:'Chọn dịch vụ',h2:'Chọn giờ',h3:'Thông tin của bạn',loading:'Đang tải…',
   fName:'Họ tên',fPhone:'Điện thoại',fMail:'Email',fNote:'Ghi chú (không bắt buộc)',
@@ -275,7 +277,7 @@ const T={
   free:'chỗ trống',doneH:'Đã đặt lịch xong',doneNo:'Mã đặt lịch:',doneNote:'Xác nhận đã gửi vào email của bạn.',
   again:'Đặt thêm lịch',cancelLink:'Huỷ lịch',
   rDate:'Ngày',rTime:'Giờ',rSvc:'Dịch vụ',rStaff:'Thợ',rPrice:'Giá',
-  fill:'Vui lòng nhập tên và số điện thoại.',min:'phút',kr:'kr',
+  fill:'Vui lòng nhập tên và số điện thoại.',fillMail:'Vui lòng nhập email hợp lệ.',mailNote:'Xác nhận sẽ gửi vào email này.',min:'phút',kr:'kr',
   cPrompt:'Nhập mã đặt lịch:',cPhone:'Nhập số điện thoại đã dùng khi đặt:',cOk:'Đã huỷ lịch.'}};
 const WD={sv:['Sön','Mån','Tis','Ons','Tor','Fre','Lör'],en:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],vi:['CN','T2','T3','T4','T5','T6','T7']};
 const CAT_COLOR=['#8C3A31','#7C4B72','#2E8B75','#E9A23B','#C96A5C','#4A6FA5'];
@@ -504,12 +506,13 @@ $('#back').onclick=()=>{ step=Math.max(1,step-1); showErr(''); render(); scrollT
 $('#next').onclick=async()=>{
   showErr('');
   if(step<3){ step++; render(); scrollTop(); return; }
-  const name=$('#fName').value.trim(), phone=$('#fPhone').value.trim();
-  if(name.length<2||phone.length<6){ showErr(t('fill')); return; }
+  const name=$('#fName').value.trim(), phone=$('#fPhone').value.trim(), mail=$('#fMail').value.trim();
+  if(name.length<2||phone.length<6){ showErr(t('fill')); $('#fName').focus(); return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail)){ showErr(t('fillMail')); $('#fMail').focus(); return; }
   const n=$('#next'); n.disabled=true; n.innerHTML='<span class="spin"></span>';
   try{
     const b=await api('book',{date:sel.date,time:sel.time,serviceId:sel.svc.id,staffId:sel.staff,
-      customer:name,phone:phone,email:$('#fMail').value.trim(),note:$('#fNote').value.trim()});
+      customer:name,phone:phone,email:mail,note:$('#fNote').value.trim()});
     $('#bCode').textContent=b.code;
     const d=new Date(b.date+'T12:00:00');
     $('#doneRecap').innerHTML=[
