@@ -8,492 +8,463 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* ============ CẤU HÌNH DUY NHẤT ============ */
-/* Dán URL /exec của Apps Script vào biến API_URL ở cuối file */
-
 :root{
-  --ink:#2A1F1D;        /* text mörk */
-  --brick:#8C3A31;      /* husfärg från visitkortet */
+  --brick:#8C3A31;
   --brick-d:#6E2C25;
-  --bone:#FFFFFF;
-  --paper:#F8F4F2;
-  --lacquer:#8C3A31;    /* accent = brick */
-  --sand:#E8C9A0;
-  --mint:#8FAE9B;
-  --line:rgba(42,31,29,.14);
-  --muted:#8A7A76;
-  --r:14px;
-  --shadow:0 10px 30px rgba(42,31,29,.10);
+  --ink:#1F1F1F;
+  --grey:#6B6B6B;
+  --line:#E4E1DF;
+  --bg:#F5F3F2;
+  --card:#FFFFFF;
+  --ok:#2E7D5B;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{
-  font-family:'Inter',-apple-system,'Segoe UI',system-ui,sans-serif;
-  background:var(--paper);color:var(--ink);
-  -webkit-font-smoothing:antialiased;
-  padding-bottom:96px;
-}
-.wrap{max-width:900px;margin:0 auto;padding:0 20px}
+body{font-family:'Inter',-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--ink);
+  font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:110px}
+button,input,textarea,select{font:inherit;color:inherit}
+[hidden]{display:none!important}
+.wrap{max-width:720px;margin:0 auto;padding:0 16px}
 
-/* ---------- Header ---------- */
-header{background:var(--brick);color:#fff;padding:26px 0 44px;position:relative;overflow:hidden}
-header:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:26px;background:var(--paper);
-  border-radius:60% 60% 0 0/26px 26px}
-.bar{display:flex;justify-content:space-between;align-items:center;gap:12px}
-.brand{font-family:'Inter',system-ui,sans-serif;font-weight:700;font-size:19px;letter-spacing:.01em}
-.langs{display:flex;gap:2px;background:rgba(255,255,255,.14);padding:3px;border-radius:99px}
-.langs button{background:none;border:0;color:rgba(255,255,255,.72);font:inherit;font-size:12px;font-weight:700;
-  letter-spacing:.06em;padding:5px 11px;border-radius:99px;cursor:pointer}
-.langs button.on{background:#fff;color:var(--brick)}
-.hero{margin-top:30px;max-width:560px}
-.hero h1{font-family:'Inter',system-ui,sans-serif;font-weight:700;letter-spacing:-.02em;font-size:clamp(34px,6.5vw,54px);line-height:1.05}
-.hero h1 em{font-style:normal;color:var(--sand)}
-.hero p{margin-top:12px;color:rgba(255,255,255,.78);font-size:15px;line-height:1.6}
-.meta{margin-top:16px;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:rgba(255,255,255,.7)}
+/* ---------- Topp ---------- */
+.top{background:var(--card);border-bottom:1px solid var(--line)}
+.top .wrap{display:flex;align-items:center;gap:12px;padding-top:12px;padding-bottom:12px}
+.top .name{font-weight:700;font-size:16px;flex:1;min-width:0}
+.langs{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.langs button{background:#fff;border:0;padding:6px 10px;font-size:12px;font-weight:600;color:var(--grey);cursor:pointer}
+.langs button.on{background:var(--brick);color:#fff}
 
-/* ---------- Steps ---------- */
-.steps{display:flex;gap:8px;margin:26px 0 22px}
-.step{flex:1;min-width:0}
-.step .drop{height:6px;border-radius:99px;background:var(--line);transition:background .35s}
-.step.done .drop,.step.now .drop{background:var(--lacquer)}
-.step span{display:block;margin-top:8px;font-size:11px;font-weight:700;letter-spacing:.08em;
-  text-transform:uppercase;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.step.now span{color:var(--ink)}
+/* ---------- Salongsinfo ---------- */
+.info{background:var(--card);border-bottom:1px solid var(--line);padding:20px 0 22px}
+.info h1{font-size:22px;font-weight:700;letter-spacing:-.01em}
+.info .rows{margin-top:12px;display:grid;gap:6px;font-size:14px;color:var(--grey)}
+.info .rows div{display:flex;gap:8px}
+.info .rows b{color:var(--ink);font-weight:600}
+.open{display:inline-flex;align-items:center;gap:6px;margin-top:12px;font-size:13px;font-weight:600;color:var(--ok)}
+.open i{width:7px;height:7px;border-radius:50%;background:var(--ok);font-style:normal}
+.open.shut{color:var(--grey)} .open.shut i{background:var(--grey)}
 
-/* ---------- Cards / panels ---------- */
-section.panel{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:22px;margin-bottom:16px;
-  box-shadow:var(--shadow)}
-section.panel[hidden]{display:none}
-h2{font-family:'Inter',system-ui,sans-serif;font-weight:700;letter-spacing:-.02em;font-size:24px;margin-bottom:4px}
-.sub{color:var(--muted);font-size:14px;margin-bottom:18px}
+/* ---------- Sektioner ---------- */
+h2{font-size:17px;font-weight:700;margin:22px 0 10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.catlabel{padding:12px 16px 4px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--grey)}
 
-.opts{display:grid;gap:10px}
-.opt{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:#fff;border:1px solid var(--line);
-  border-radius:12px;padding:14px 16px;cursor:pointer;font:inherit;color:inherit;transition:.16s}
-.opt:hover{border-color:var(--ink);transform:translateY(-1px)}
-.opt.sel{border-color:var(--brick);box-shadow:inset 0 0 0 1px var(--brick);background:#FBF3F1}
-.opt .t{flex:1;min-width:0}
-.opt .t b{display:block;font-size:15px;font-weight:700}
-.opt .t small{color:var(--muted);font-size:13px}
-.opt .p{text-align:right;white-space:nowrap;font-weight:700;font-size:15px}
-.opt .p small{display:block;font-weight:400;color:var(--muted);font-size:12px}
-.cat{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
-  margin:16px 0 8px}
-.cat:first-child{margin-top:0}
+/* rad: tjänst */
+.row{display:flex;align-items:center;gap:12px;padding:14px 16px;border-top:1px solid var(--line);cursor:pointer;background:none;border-left:0;border-right:0;border-bottom:0;width:100%;text-align:left}
+.row:first-of-type{border-top:0}
+.row:hover{background:#FAF8F7}
+.row .t{flex:1;min-width:0}
+.row .t b{display:block;font-weight:600;font-size:15px}
+.row .t small{color:var(--grey);font-size:13px}
+.row .pick{border:1px solid var(--brick);color:var(--brick);background:#fff;border-radius:8px;padding:8px 14px;
+  font-size:14px;font-weight:600;white-space:nowrap}
+.row.sel{background:#FBF3F1}
+.row.sel .pick{background:var(--brick);color:#fff}
 
-/* Swatch cho thợ */
-.sw{width:36px;height:36px;border-radius:50%;flex:none;display:grid;place-items:center;color:#fff;
-  font-weight:700;font-size:14px;font-family:'Inter',system-ui,sans-serif}
+/* ---------- Datum ---------- */
+.datebar{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px;scrollbar-width:none}
+.datebar::-webkit-scrollbar{display:none}
+.dbtn{flex:none;width:58px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 0;
+  text-align:center;cursor:pointer}
+.dbtn small{display:block;font-size:11px;color:var(--grey);text-transform:uppercase;font-weight:600}
+.dbtn b{display:block;font-size:17px;font-weight:700;margin-top:1px}
+.dbtn.sel{background:var(--brick);border-color:var(--brick);color:#fff}
+.dbtn.sel small{color:rgba(255,255,255,.8)}
+.dbtn:disabled{opacity:.35;cursor:not-allowed}
 
-/* ---------- Datum + tider ---------- */
-.dates{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin}
-.date{flex:none;width:64px;border:1px solid var(--line);background:#fff;border-radius:12px;padding:10px 0;
-  text-align:center;cursor:pointer;font:inherit;color:inherit;transition:.16s}
-.date:hover{border-color:var(--ink)}
-.date.sel{background:var(--brick);color:#fff;border-color:var(--brick)}
-.date.off{opacity:.32;cursor:not-allowed}
-.date b{display:block;font-size:18px;line-height:1.2}
-.date small{font-size:11px;text-transform:uppercase;letter-spacing:.06em;opacity:.75}
-.times{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;margin-top:20px}
-.time{border:1px solid var(--line);background:#fff;border-radius:10px;padding:11px 0;font:inherit;font-weight:700;
-  font-size:14px;cursor:pointer;color:inherit;transition:.16s}
-.time:hover{border-color:var(--ink)}
-.time.sel{background:var(--lacquer);border-color:var(--lacquer);color:#fff}
-.empty{padding:26px;text-align:center;color:var(--muted);font-size:14px;border:1px dashed var(--line);border-radius:12px;margin-top:16px}
+/* filter thợ */
+.filter{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none}
+.filter::-webkit-scrollbar{display:none}
+.fbtn{flex:none;border:1px solid var(--line);background:var(--card);border-radius:99px;padding:8px 14px;
+  font-size:14px;font-weight:500;cursor:pointer;white-space:nowrap}
+.fbtn.sel{border-color:var(--brick);background:#FBF3F1;color:var(--brick);font-weight:600}
+
+/* tider */
+.tgroup{margin-top:14px}
+.tgroup h3{font-size:13px;font-weight:700;color:var(--grey);margin-bottom:8px}
+.tlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:8px}
+.tbtn{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 0;font-size:15px;
+  font-weight:600;cursor:pointer}
+.tbtn:hover{border-color:var(--brick)}
+.tbtn.sel{background:var(--brick);border-color:var(--brick);color:#fff}
+.msg{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:22px;text-align:center;
+  color:var(--grey);font-size:14px}
 
 /* ---------- Form ---------- */
+.form{padding:16px}
 .field{margin-bottom:14px}
-label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}
-input,textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font:inherit;
-  background:#fff;color:inherit}
-input:focus,textarea:focus{outline:2px solid var(--lacquer);outline-offset:1px;border-color:transparent}
-textarea{min-height:78px;resize:vertical}
+label{display:block;font-size:13px;font-weight:600;margin-bottom:5px}
+input,textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:12px 13px;background:#fff}
+input:focus,textarea:focus{outline:0;border-color:var(--brick);box-shadow:0 0 0 3px rgba(140,58,49,.12)}
+textarea{min-height:70px;resize:vertical}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:520px){.two{grid-template-columns:1fr}}
-
-/* ---------- Sticky sammanfattning ---------- */
-.dock{position:fixed;left:0;right:0;bottom:0;background:var(--ink);color:#fff;z-index:20;
-  box-shadow:0 -8px 30px rgba(42,31,29,.28)}
-.dock .wrap{display:flex;align-items:center;gap:14px;padding-top:12px;padding-bottom:12px}
-.dock .info{flex:1;min-width:0;font-size:13px;line-height:1.4}
-.dock .info b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dock .info span{color:rgba(255,255,255,.62)}
-.btn{background:var(--lacquer);color:#fff;border:0;border-radius:99px;padding:13px 26px;font:inherit;font-weight:700;
-  cursor:pointer;white-space:nowrap;transition:.16s}
-.btn:hover{filter:brightness(1.08)}
-.btn:disabled{opacity:.4;cursor:not-allowed}
-.btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.32);color:#fff;padding:13px 18px}
-.btn.dark{background:var(--ink)}
+.recap{padding:14px 16px;background:#FBF3F1;border-bottom:1px solid var(--line)}
+.recap div{display:flex;justify-content:space-between;gap:12px;font-size:14px;padding:3px 0}
+.recap div span{color:var(--grey)}
+.recap div b{font-weight:600;text-align:right}
+.recap .tot{border-top:1px solid var(--line);margin-top:6px;padding-top:8px;font-size:16px}
+.recap .tot b{color:var(--brick);font-weight:700}
 
 /* ---------- Bekräftelse ---------- */
-.done{text-align:center;padding:34px 22px}
-.done .code{font-family:'Inter',system-ui,sans-serif;font-weight:700;font-size:30px;letter-spacing:.04em;color:var(--lacquer);margin:10px 0 18px}
-.recap{text-align:left;max-width:340px;margin:0 auto;border-top:1px solid var(--line)}
-.recap div{display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
-.recap div span{color:var(--muted)}
-.recap div b{text-align:right}
+.done{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:30px 20px;text-align:center}
+.check{width:48px;height:48px;border-radius:50%;background:var(--ok);color:#fff;display:grid;place-items:center;
+  font-size:24px;margin:0 auto 14px}
+.done h2{margin:0 0 4px}
+.done .no{font-size:14px;color:var(--grey);margin-bottom:18px}
+.done .no b{color:var(--ink);font-family:ui-monospace,monospace;font-size:15px}
+.done .recap{background:none;border:0;text-align:left;max-width:340px;margin:0 auto;padding:0}
+.done .recap div{border-bottom:1px solid var(--line);padding:9px 0}
 
-.err{background:#FBEDEA;border:1px solid var(--brick);color:#6E2C25;padding:12px 14px;border-radius:10px;
-  font-size:14px;margin-bottom:14px}
-.err[hidden]{display:none}
-.spin{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;
-  border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}
+/* ---------- Fot / knappar ---------- */
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);z-index:20}
+.bar .wrap{display:flex;align-items:center;gap:12px;padding-top:12px;padding-bottom:12px}
+.bar .sum{flex:1;min-width:0;font-size:13px;color:var(--grey);line-height:1.35}
+.bar .sum b{display:block;color:var(--ink);font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btn{background:var(--brick);color:#fff;border:0;border-radius:8px;padding:13px 22px;font-weight:600;cursor:pointer}
+.btn:hover{background:var(--brick-d)}
+.btn:disabled{background:#D6D2D0;cursor:not-allowed}
+.btn.gh{background:#fff;border:1px solid var(--line);color:var(--ink);padding:13px 16px}
+.btn.gh:hover{background:#F5F3F2}
+.err{background:#FDEEEB;border:1px solid var(--brick);color:var(--brick-d);border-radius:8px;padding:11px 13px;
+  font-size:14px;margin:14px 0}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;
+  border-radius:50%;animation:sp .7s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
-footer{text-align:center;color:var(--muted);font-size:13px;padding:26px 20px}
-footer a{color:var(--muted)}
+footer{text-align:center;color:var(--grey);font-size:13px;padding:24px 16px}
+footer a{color:var(--grey)}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
 
-<header>
-  <div class="wrap">
-    <div class="bar">
-      <div class="brand" id="brandName">N.O.S Nails Beauty AB</div>
-      <div class="langs">
-        <button data-lang="sv" class="on">SV</button>
-        <button data-lang="en">EN</button>
-        <button data-lang="vi">VI</button>
-      </div>
-    </div>
-    <div class="hero">
-      <h1><span data-t="h1a">Boka din</span> <em data-t="h1b">nagel&shy;tid</em></h1>
-      <p data-t="lead">Välj behandling, tekniker och tid. Du får en bekräftelse direkt.</p>
-      <div class="meta">
-        <span id="mAddr"></span><span id="mPhone"></span>
-      </div>
-    </div>
+<div class="top"><div class="wrap">
+  <div class="name" id="topName">N.O.S Nails Beauty AB</div>
+  <div class="langs">
+    <button data-lang="sv" class="on">SV</button>
+    <button data-lang="en">EN</button>
+    <button data-lang="vi">VI</button>
   </div>
-</header>
+</div></div>
+
+<div class="info"><div class="wrap">
+  <h1 id="salonName">N.O.S Nails Beauty AB</h1>
+  <div class="rows">
+    <div><span>📍</span><span id="sAddr"></span></div>
+    <div><span>📞</span><b id="sPhone"></b></div>
+    <div><span>🕐</span><span id="sHours"></span></div>
+  </div>
+  <div class="open" id="openNow" hidden><i></i><span></span></div>
+</div></div>
 
 <main class="wrap">
-  <div class="steps" id="steps">
-    <div class="step now"><div class="drop"></div><span data-t="st1">Behandling</span></div>
-    <div class="step"><div class="drop"></div><span data-t="st2">Tekniker</span></div>
-    <div class="step"><div class="drop"></div><span data-t="st3">Tid</span></div>
-    <div class="step"><div class="drop"></div><span data-t="st4">Uppgifter</span></div>
-  </div>
-
   <div class="err" id="err" hidden></div>
 
-  <!-- 1: Tjänst -->
-  <section class="panel" id="p1">
-    <h2 data-t="h2s1">Vad vill du göra?</h2>
-    <p class="sub" data-t="subs1">Priser i kronor. Tiden avser hela behandlingen.</p>
-    <div id="svcList" class="opts"><p class="sub" data-t="loading">Laddar…</p></div>
+  <!-- STEG 1: tjänst -->
+  <section id="s1">
+    <h2 data-t="h1">Välj behandling</h2>
+    <div class="card" id="svcCard"><div class="msg" data-t="loading">Laddar…</div></div>
   </section>
 
-  <!-- 2: Tekniker -->
-  <section class="panel" id="p2" hidden>
-    <h2 data-t="h2s2">Vem ska göra jobbet?</h2>
-    <p class="sub" data-t="subs2">Ingen favorit? Låt oss välja den som är ledig.</p>
-    <div id="staffList" class="opts"></div>
+  <!-- STEG 2: tid -->
+  <section id="s2" hidden>
+    <h2 data-t="h2">Välj tid</h2>
+    <div class="filter" id="staffFilter"></div>
+    <div class="datebar" id="dates"></div>
+    <div id="times"></div>
   </section>
 
-  <!-- 3: Tid -->
-  <section class="panel" id="p3" hidden>
-    <h2 data-t="h2s3">Välj dag och tid</h2>
-    <p class="sub" data-t="subs3">Endast lediga tider visas.</p>
-    <div class="dates" id="dates"></div>
-    <div id="timeBox"></div>
-  </section>
-
-  <!-- 4: Uppgifter -->
-  <section class="panel" id="p4" hidden>
-    <h2 data-t="h2s4">Dina uppgifter</h2>
-    <p class="sub" data-t="subs4">Vi skickar en bekräftelse och påminnelse.</p>
-    <div class="two">
-      <div class="field"><label data-t="fName">Namn</label><input id="fName" autocomplete="name"></div>
-      <div class="field"><label data-t="fPhone">Telefon</label><input id="fPhone" type="tel" autocomplete="tel" placeholder="+46 70 123 45 67"></div>
+  <!-- STEG 3: uppgifter -->
+  <section id="s3" hidden>
+    <h2 data-t="h3">Dina uppgifter</h2>
+    <div class="card">
+      <div class="recap" id="recap"></div>
+      <div class="form">
+        <div class="two">
+          <div class="field"><label data-t="fName">Namn</label><input id="fName" autocomplete="name"></div>
+          <div class="field"><label data-t="fPhone">Telefon</label><input id="fPhone" type="tel" autocomplete="tel" placeholder="073-936 16 55"></div>
+        </div>
+        <div class="field"><label data-t="fMail">E-post</label><input id="fMail" type="email" autocomplete="email"></div>
+        <div class="field"><label data-t="fNote">Meddelande (valfritt)</label><textarea id="fNote"></textarea></div>
+      </div>
     </div>
-    <div class="field"><label data-t="fMail">E-post</label><input id="fMail" type="email" autocomplete="email"></div>
-    <div class="field"><label data-t="fNote">Önskemål (valfritt)</label><textarea id="fNote"></textarea></div>
   </section>
 
-  <!-- 5: Klart -->
-  <section class="panel" id="p5" hidden>
+  <!-- STEG 4: klart -->
+  <section id="s4" hidden>
     <div class="done">
-      <h2 data-t="h2s5">Din tid är bokad</h2>
-      <div class="code" id="bCode"></div>
-      <div class="recap" id="bRecap"></div>
-      <p class="sub" style="margin-top:18px" data-t="doneNote">Spara bokningsnumret. Ring oss om du behöver ändra tiden.</p>
-      <button class="btn dark" onclick="location.reload()" data-t="again">Boka en till tid</button>
+      <div class="check">✓</div>
+      <h2 data-t="doneH">Tiden är bokad</h2>
+      <p class="no" data-t="doneNo">Bokningsnummer: <b id="bCode"></b></p>
+      <div class="recap" id="doneRecap"></div>
+      <p style="color:var(--grey);font-size:13px;margin:18px 0" data-t="doneNote">Bekräftelse skickas till din e-post.</p>
+      <button class="btn gh" onclick="location.reload()" data-t="again">Boka en till tid</button>
     </div>
   </section>
 </main>
 
-<div class="dock" id="dock">
+<div class="bar" id="bar">
   <div class="wrap">
-    <button class="btn ghost" id="back" hidden data-t="back">Tillbaka</button>
-    <div class="info">
-      <b id="dockMain" data-t="dockStart">Välj en behandling</b>
-      <span id="dockSub"></span>
-    </div>
+    <button class="btn gh" id="back" hidden data-t="back">Tillbaka</button>
+    <div class="sum"><b id="sumMain" data-t="pickSvc">Välj en behandling</b><span id="sumSub"></span></div>
     <button class="btn" id="next" disabled data-t="next">Nästa</button>
   </div>
 </div>
 
 <footer>
-  <span id="fSalon"></span> · <span id="fSocial"></span> · <a href="#" id="fCancel" data-t="cancelLink">Avboka tid</a>
+  <span id="fSalon"></span> · <span id="fSocial"></span><br>
+  <a href="#" id="fCancel" data-t="cancelLink">Avboka en tid</a>
 </footer>
 
 <script>
-/* ================= CẤU HÌNH ================= */
 const API_URL = 'https://script.google.com/macros/s/AKfycbxAgRKP5UWX9V8O4OqlJpAQH5ynSxgnCTNMnfng_9YybMHALJFQ98Rxindhuqls2hk/exec';
-/* ============================================ */
 
-const T = {
-  sv:{h1a:'Boka din',h1b:'nageltid',lead:'Välj behandling, tekniker och tid. Du får en bekräftelse direkt.',
-    st1:'Behandling',st2:'Tekniker',st3:'Tid',st4:'Uppgifter',
-    h2s1:'Vad vill du göra?',subs1:'Priser i kronor. Tiden avser hela behandlingen.',
-    h2s2:'Vem ska göra jobbet?',subs2:'Ingen favorit? Låt oss välja den som är ledig.',
-    h2s3:'Välj dag och tid',subs3:'Endast lediga tider visas.',
-    h2s4:'Dina uppgifter',subs4:'Vi skickar en bekräftelse och påminnelse.',
-    h2s5:'Din tid är bokad',doneNote:'Spara bokningsnumret. Ring oss om du behöver ändra tiden.',
-    again:'Boka en till tid',fName:'Namn',fPhone:'Telefon',fMail:'E-post',fNote:'Önskemål (valfritt)',
-    next:'Nästa',back:'Tillbaka',confirm:'Bekräfta bokning',loading:'Laddar…',
-    dockStart:'Välj en behandling',anyStaff:'Först ledig',anySub:'Snabbast möjliga tid',
-    closed:'Stängt denna dag.',noTimes:'Inga lediga tider kvar. Prova en annan dag.',
-    min:'min',kr:'kr',cancelLink:'Avboka tid',
-    cancelPrompt:'Ange ditt bokningsnummer:',cancelPhone:'Ange telefonnumret du bokade med:',
-    cancelOk:'Bokningen är avbokad.',recapDate:'Datum',recapTime:'Tid',recapSvc:'Behandling',
-    recapStaff:'Tekniker',recapPrice:'Pris',fillName:'Fyll i namn och telefon.'},
-  en:{h1a:'Book your',h1b:'nail time',lead:'Pick a treatment, a technician and a time. Instant confirmation.',
-    st1:'Treatment',st2:'Technician',st3:'Time',st4:'Details',
-    h2s1:'What would you like?',subs1:'Prices in SEK. Time covers the full treatment.',
-    h2s2:'Who should do it?',subs2:'No favourite? We pick whoever is free.',
-    h2s3:'Pick day and time',subs3:'Only free times are shown.',
-    h2s4:'Your details',subs4:'We send a confirmation and a reminder.',
-    h2s5:'Your time is booked',doneNote:'Save the booking number. Call us to change the time.',
-    again:'Book another time',fName:'Name',fPhone:'Phone',fMail:'Email',fNote:'Requests (optional)',
-    next:'Next',back:'Back',confirm:'Confirm booking',loading:'Loading…',
-    dockStart:'Pick a treatment',anyStaff:'First available',anySub:'Fastest possible time',
-    closed:'Closed this day.',noTimes:'No times left. Try another day.',
-    min:'min',kr:'SEK',cancelLink:'Cancel a booking',
-    cancelPrompt:'Enter your booking number:',cancelPhone:'Enter the phone number you booked with:',
-    cancelOk:'The booking is cancelled.',recapDate:'Date',recapTime:'Time',recapSvc:'Treatment',
-    recapStaff:'Technician',recapPrice:'Price',fillName:'Please fill in name and phone.'},
-  vi:{h1a:'Đặt lịch',h1b:'làm móng',lead:'Chọn dịch vụ, thợ và giờ. Xác nhận ngay lập tức.',
-    st1:'Dịch vụ',st2:'Thợ',st3:'Giờ',st4:'Thông tin',
-    h2s1:'Bạn muốn làm gì?',subs1:'Giá tính bằng kronor. Thời gian là cho cả buổi.',
-    h2s2:'Ai sẽ làm cho bạn?',subs2:'Không cần chọn? Để tiệm xếp thợ đang rảnh.',
-    h2s3:'Chọn ngày và giờ',subs3:'Chỉ hiện giờ còn trống.',
-    h2s4:'Thông tin của bạn',subs4:'Tiệm sẽ gửi xác nhận và nhắc lịch.',
-    h2s5:'Đã đặt lịch xong',doneNote:'Lưu mã đặt lịch. Gọi tiệm nếu cần đổi giờ.',
-    again:'Đặt thêm lịch',fName:'Họ tên',fPhone:'Điện thoại',fMail:'Email',fNote:'Ghi chú (không bắt buộc)',
-    next:'Tiếp',back:'Quay lại',confirm:'Xác nhận đặt lịch',loading:'Đang tải…',
-    dockStart:'Chọn dịch vụ',anyStaff:'Thợ nào rảnh cũng được',anySub:'Giờ sớm nhất có thể',
-    closed:'Ngày này tiệm nghỉ.',noTimes:'Hết giờ trống. Thử ngày khác nhé.',
-    min:'phút',kr:'kr',cancelLink:'Huỷ lịch',
-    cancelPrompt:'Nhập mã đặt lịch:',cancelPhone:'Nhập số điện thoại đã dùng khi đặt:',
-    cancelOk:'Đã huỷ lịch.',recapDate:'Ngày',recapTime:'Giờ',recapSvc:'Dịch vụ',
-    recapStaff:'Thợ',recapPrice:'Giá',fillName:'Vui lòng nhập tên và số điện thoại.'}
-};
-const WD = {sv:['Sön','Mån','Tis','Ons','Tor','Fre','Lör'],en:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],vi:['CN','T2','T3','T4','T5','T6','T7']};
-const SWATCH = ['#8C3A31','#C08457','#8FAE9B','#6E2C25','#B5674F','#3E2B27'];
+const T={
+ sv:{h1:'Välj behandling',h2:'Välj tid',h3:'Dina uppgifter',loading:'Laddar…',
+  fName:'Namn',fPhone:'Telefon',fMail:'E-post',fNote:'Meddelande (valfritt)',
+  next:'Nästa',back:'Tillbaka',confirm:'Bekräfta bokning',pickSvc:'Välj en behandling',
+  pick:'Välj',picked:'Vald',anyStaff:'Alla',open:'Öppet nu',closed:'Stängt nu',
+  morning:'Förmiddag',afternoon:'Eftermiddag',evening:'Kväll',
+  noTimes:'Inga lediga tider den dagen. Prova en annan dag.',shutDay:'Stängt den dagen.',
+  doneH:'Tiden är bokad',doneNo:'Bokningsnummer:',doneNote:'Bekräftelse skickas till din e-post.',
+  again:'Boka en till tid',cancelLink:'Avboka en tid',
+  rDate:'Datum',rTime:'Tid',rSvc:'Behandling',rStaff:'Tekniker',rPrice:'Pris',
+  fill:'Fyll i namn och telefon.',min:'min',kr:'kr',
+  cPrompt:'Ange ditt bokningsnummer:',cPhone:'Ange telefonnumret du bokade med:',cOk:'Bokningen är avbokad.'},
+ en:{h1:'Choose a treatment',h2:'Choose a time',h3:'Your details',loading:'Loading…',
+  fName:'Name',fPhone:'Phone',fMail:'Email',fNote:'Message (optional)',
+  next:'Next',back:'Back',confirm:'Confirm booking',pickSvc:'Choose a treatment',
+  pick:'Select',picked:'Selected',anyStaff:'Anyone',open:'Open now',closed:'Closed now',
+  morning:'Morning',afternoon:'Afternoon',evening:'Evening',
+  noTimes:'No times left that day. Try another day.',shutDay:'Closed that day.',
+  doneH:'Your time is booked',doneNo:'Booking number:',doneNote:'A confirmation is sent to your email.',
+  again:'Book another time',cancelLink:'Cancel a booking',
+  rDate:'Date',rTime:'Time',rSvc:'Treatment',rStaff:'Technician',rPrice:'Price',
+  fill:'Please fill in name and phone.',min:'min',kr:'SEK',
+  cPrompt:'Enter your booking number:',cPhone:'Enter the phone number you booked with:',cOk:'The booking is cancelled.'},
+ vi:{h1:'Chọn dịch vụ',h2:'Chọn giờ',h3:'Thông tin của bạn',loading:'Đang tải…',
+  fName:'Họ tên',fPhone:'Điện thoại',fMail:'Email',fNote:'Ghi chú (không bắt buộc)',
+  next:'Tiếp',back:'Quay lại',confirm:'Xác nhận đặt lịch',pickSvc:'Chọn dịch vụ',
+  pick:'Chọn',picked:'Đã chọn',anyStaff:'Thợ nào cũng được',open:'Đang mở cửa',closed:'Đang đóng cửa',
+  morning:'Buổi sáng',afternoon:'Buổi chiều',evening:'Buổi tối',
+  noTimes:'Ngày này hết giờ trống. Thử ngày khác nhé.',shutDay:'Ngày này tiệm nghỉ.',
+  doneH:'Đã đặt lịch xong',doneNo:'Mã đặt lịch:',doneNote:'Xác nhận đã gửi vào email của bạn.',
+  again:'Đặt thêm lịch',cancelLink:'Huỷ lịch',
+  rDate:'Ngày',rTime:'Giờ',rSvc:'Dịch vụ',rStaff:'Thợ',rPrice:'Giá',
+  fill:'Vui lòng nhập tên và số điện thoại.',min:'phút',kr:'kr',
+  cPrompt:'Nhập mã đặt lịch:',cPhone:'Nhập số điện thoại đã dùng khi đặt:',cOk:'Đã huỷ lịch.'}};
+const WD={sv:['Sön','Mån','Tis','Ons','Tor','Fre','Lör'],en:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],vi:['CN','T2','T3','T4','T5','T6','T7']};
 
-let lang='sv', cfg=null, step=1;
-let sel={service:null, staff:null, date:null, time:null};
+let lang='sv', cfg=null, step=1, slots=[];
+let sel={svc:null, staff:'any', date:null, time:null};
 
-const $ = s => document.querySelector(s);
-const api = async (action, payload={}) => {
-  const r = await fetch(API_URL, {
-    method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'},
-    body: JSON.stringify({action, ...payload})
-  });
-  const j = await r.json();
-  if(!j.success) throw new Error(j.error || 'Något gick fel');
+const $=s=>document.querySelector(s);
+const t=k=>T[lang][k]||T.sv[k]||k;
+const loc=()=>lang==='vi'?'vi-VN':lang==='en'?'en-GB':'sv-SE';
+const svcName=s=>s.name[lang]||s.name.sv;
+
+async function api(action,p={}){
+  const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body:JSON.stringify({action,...p})});
+  const j=await r.json();
+  if(!j.success) throw new Error(j.error||'Fel');
   return j.data;
-};
-const t = k => (T[lang][k] || T.sv[k] || k);
-const showErr = m => { const e=$('#err'); e.textContent=m; e.hidden=!m; if(m) e.scrollIntoView({block:'center'}); };
+}
+function showErr(m){const e=$('#err');e.textContent=m||'';e.hidden=!m;if(m)e.scrollIntoView({block:'center'});}
+function txt(){document.querySelectorAll('[data-t]').forEach(e=>{
+  if(e.id==='bCode'||e.children.length) return; e.textContent=t(e.dataset.t);});}
 
-/* ---------- språk ---------- */
 document.querySelectorAll('.langs button').forEach(b=>b.onclick=()=>{
   lang=b.dataset.lang;
   document.querySelectorAll('.langs button').forEach(x=>x.classList.toggle('on',x===b));
   document.documentElement.lang=lang;
   render();
 });
-function applyText(){
-  document.querySelectorAll('[data-t]').forEach(el=>{ el.textContent = t(el.dataset.t); });
-}
 
 /* ---------- start ---------- */
-(async function init(){
+(async function(){
   try{
-    cfg = await api('getConfig');
-    $('#brandName').textContent = cfg.salon.name;
-    $('#fSalon').textContent = cfg.salon.name;
-    $('#mAddr').textContent = cfg.salon.address || '';
-    $('#mPhone').textContent = cfg.salon.phone || '';
-    $('#fSocial').textContent = cfg.salon.social || '';
+    cfg=await api('getConfig');
+    $('#topName').textContent=cfg.salon.name;
+    $('#salonName').textContent=cfg.salon.name;
+    $('#fSalon').textContent=cfg.salon.name;
+    $('#fSocial').textContent=cfg.salon.social||'';
+    $('#sAddr').textContent=cfg.salon.address||'';
+    $('#sPhone').textContent=cfg.salon.phone||'';
+    $('#sHours').textContent=hoursLine();
+    openBadge();
     render();
-  }catch(e){ showErr(e.message + ' — kontrollera API_URL.'); }
+  }catch(e){ showErr(e.message); }
 })();
+
+function hoursLine(){
+  const h=cfg.hours.slice().sort((a,b)=>((a.weekday+6)%7)-((b.weekday+6)%7));
+  return h.map(x=>`${WD[lang][x.weekday]} ${x.open}–${x.close}`).join(' · ');
+}
+function openBadge(){
+  const now=new Date(), wd=now.getDay(), hm=now.toTimeString().slice(0,5);
+  const h=cfg.hours.find(x=>x.weekday===wd);
+  const isOpen=!!h && hm>=h.open && hm<h.close;
+  const el=$('#openNow'); el.hidden=false;
+  el.classList.toggle('shut',!isOpen);
+  el.querySelector('span').textContent=isOpen?t('open'):t('closed');
+}
 
 /* ---------- render ---------- */
 function render(){
-  applyText();
-  renderSteps();
-  renderServices();
-  renderStaff();
-  renderDates();
-  renderTimes();
-  renderDock();
-  [1,2,3,4,5].forEach(n=>{ $('#p'+n).hidden = (n!==step); });
+  txt();
+  if(cfg){ $('#sHours').textContent=hoursLine(); openBadge(); }
+  drawServices(); drawStaff(); drawDates(); drawTimes(); drawRecap(); drawBar();
+  [1,2,3,4].forEach(n=>{ $('#s'+n).hidden=(n!==step); });
+  $('#bar').hidden = step===4;
 }
 
-function renderSteps(){
-  document.querySelectorAll('#steps .step').forEach((el,i)=>{
-    el.classList.toggle('done', i+1 < step);
-    el.classList.toggle('now', i+1 === step);
-  });
-  $('#steps').style.display = step===5 ? 'none' : 'flex';
-  $('#dock').style.display = step===5 ? 'none' : 'block';
-}
-
-function renderServices(){
+function drawServices(){
   if(!cfg) return;
-  const box=$('#svcList'); box.innerHTML='';
+  const c=$('#svcCard'); c.innerHTML='';
   const cats=[...new Set(cfg.services.map(s=>s.category||''))];
-  cats.forEach(c=>{
-    if(c){ const h=document.createElement('div'); h.className='cat'; h.textContent=c; box.appendChild(h); }
-    cfg.services.filter(s=>(s.category||'')===c).forEach(s=>{
+  cats.forEach(cat=>{
+    if(cat){const l=document.createElement('div');l.className='catlabel';l.textContent=cat;c.appendChild(l);}
+    cfg.services.filter(s=>(s.category||'')===cat).forEach(s=>{
       const b=document.createElement('button');
-      b.className='opt'+(sel.service&&sel.service.id===s.id?' sel':'');
-      b.innerHTML=`<div class="t"><b>${s.name[lang]||s.name.sv}</b><small>${s.minutes} ${t('min')}</small></div>
-                   <div class="p">${s.price} ${t('kr')}</div>`;
-      b.onclick=()=>{ sel.service=s; sel.staff=null; sel.time=null; step=2; render(); };
-      box.appendChild(b);
+      b.className='row'+(sel.svc&&sel.svc.id===s.id?' sel':'');
+      b.innerHTML=`<div class="t"><b>${svcName(s)}</b><small>${s.minutes} ${t('min')} · ${s.price} ${t('kr')}</small></div>
+                   <span class="pick">${sel.svc&&sel.svc.id===s.id?t('picked'):t('pick')}</span>`;
+      b.onclick=()=>{ sel.svc=s; sel.staff='any'; sel.date=null; sel.time=null; slots=[]; step=2; render(); scrollTop(); };
+      c.appendChild(b);
     });
   });
 }
 
-function renderStaff(){
-  if(!cfg||!sel.service) return;
-  const box=$('#staffList'); box.innerHTML='';
-  const list=cfg.staff.filter(s=>s.services==='ALL'||s.services.includes(sel.service.id));
-
-  const any=document.createElement('button');
-  any.className='opt'+(sel.staff==='any'?' sel':'');
-  any.innerHTML=`<div class="sw" style="background:linear-gradient(135deg,#8C3A31,#C08457)">✦</div>
-                 <div class="t"><b>${t('anyStaff')}</b><small>${t('anySub')}</small></div>`;
-  any.onclick=()=>{ sel.staff='any'; sel.time=null; step=3; render(); };
-  box.appendChild(any);
-
-  list.forEach((s,i)=>{
+function drawStaff(){
+  if(!cfg||!sel.svc) return;
+  const f=$('#staffFilter'); f.innerHTML='';
+  const list=cfg.staff.filter(s=>s.services==='ALL'||s.services.includes(sel.svc.id));
+  const mk=(id,label)=>{
     const b=document.createElement('button');
-    b.className='opt'+(sel.staff===s.id?' sel':'');
-    b.innerHTML=`<div class="sw" style="background:${SWATCH[i%SWATCH.length]}">${s.name[0]}</div>
-                 <div class="t"><b>${s.name}</b><small>${s.title||''}</small></div>`;
-    b.onclick=()=>{ sel.staff=s.id; sel.time=null; step=3; render(); };
-    box.appendChild(b);
-  });
+    b.className='fbtn'+(sel.staff===id?' sel':'');
+    b.textContent=label;
+    b.onclick=()=>{ sel.staff=id; sel.time=null; if(sel.date) loadTimes(); else render(); };
+    f.appendChild(b);
+  };
+  mk('any',t('anyStaff'));
+  list.forEach(s=>mk(s.id,s.name));
 }
 
-function renderDates(){
-  if(!cfg) return;
+function drawDates(){
+  if(!cfg||!sel.svc) return;
   const box=$('#dates'); box.innerHTML='';
-  const openDays=cfg.hours.map(h=>h.weekday);
-  const today=new Date();
+  const open=cfg.hours.map(h=>h.weekday), today=new Date();
   for(let i=0;i<(cfg.maxDaysAhead||30);i++){
     const d=new Date(today); d.setDate(today.getDate()+i);
-    const iso=d.toISOString().slice(0,10);
-    const open=openDays.includes(d.getDay());
+    const iso=new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
     const b=document.createElement('button');
-    b.className='date'+(sel.date===iso?' sel':'')+(open?'':' off');
-    b.disabled=!open;
+    b.className='dbtn'+(sel.date===iso?' sel':'');
+    b.disabled=!open.includes(d.getDay());
     b.innerHTML=`<small>${WD[lang][d.getDay()]}</small><b>${d.getDate()}</b>
-                 <small>${d.toLocaleDateString(lang==='vi'?'vi-VN':lang==='en'?'en-GB':'sv-SE',{month:'short'})}</small>`;
+                 <small>${d.toLocaleDateString(loc(),{month:'short'}).replace('.','')}</small>`;
     b.onclick=()=>{ sel.date=iso; sel.time=null; loadTimes(); };
     box.appendChild(b);
   }
 }
 
-let slots=[];
 async function loadTimes(){
   showErr('');
-  $('#timeBox').innerHTML=`<p class="sub" style="margin-top:16px">${t('loading')}</p>`;
-  document.querySelectorAll('.date').forEach(el=>el.classList.remove('sel'));
-  renderDates(); renderDock();
+  drawDates();
+  $('#times').innerHTML=`<div class="msg">${t('loading')}</div>`;
   try{
-    const r=await api('getSlots',{date:sel.date,serviceId:sel.service.id,staffId:sel.staff||'any'});
+    const r=await api('getSlots',{date:sel.date,serviceId:sel.svc.id,staffId:sel.staff});
     slots=r.slots||[];
-    renderTimes(r.closed);
-  }catch(e){ showErr(e.message); $('#timeBox').innerHTML=''; }
+    drawTimes(r.closed); drawBar();
+  }catch(e){ showErr(e.message); $('#times').innerHTML=''; }
 }
 
-function renderTimes(closed){
-  const box=$('#timeBox'); if(!box) return;
-  if(!sel.date){ box.innerHTML=''; return; }
-  if(!slots.length){
-    box.innerHTML=`<div class="empty">${closed?t('closed'):t('noTimes')}</div>`; return;
-  }
-  box.innerHTML='<div class="times"></div>';
-  const g=box.querySelector('.times');
-  slots.forEach(s=>{
-    const b=document.createElement('button');
-    b.className='time'+(sel.time===s.time?' sel':'');
-    b.textContent=s.time;
-    b.onclick=()=>{ sel.time=s.time; renderTimes(); renderDock(); };
-    g.appendChild(b);
+function drawTimes(closed){
+  const box=$('#times'); if(!box||step!==2) return;
+  if(!sel.date){ box.innerHTML=`<div class="msg">${t('noTimes').replace(/\.$/,'')}</div>`; return; }
+  if(!slots.length){ box.innerHTML=`<div class="msg">${closed?t('shutDay'):t('noTimes')}</div>`; return; }
+  const groups=[[t('morning'),s=>s.time<'12:00'],[t('afternoon'),s=>s.time>='12:00'&&s.time<'17:00'],[t('evening'),s=>s.time>='17:00']];
+  box.innerHTML='';
+  groups.forEach(([title,fn])=>{
+    const g=slots.filter(fn); if(!g.length) return;
+    const w=document.createElement('div'); w.className='tgroup';
+    w.innerHTML=`<h3>${title}</h3>`;
+    const l=document.createElement('div'); l.className='tlist';
+    g.forEach(s=>{
+      const b=document.createElement('button');
+      b.className='tbtn'+(sel.time===s.time?' sel':'');
+      b.textContent=s.time;
+      b.onclick=()=>{ sel.time=s.time; drawTimes(); drawBar(); };
+      l.appendChild(b);
+    });
+    w.appendChild(l); box.appendChild(w);
   });
 }
 
-function renderDock(){
-  const main=$('#dockMain'), sub=$('#dockSub'), next=$('#next'), back=$('#back');
-  back.hidden = step===1;
-  back.textContent = t('back');
-  next.textContent = step===4 ? t('confirm') : t('next');
-  let ready=false;
-  if(step===1){ main.textContent=t('dockStart'); sub.textContent=''; }
-  if(step>=2 && sel.service){
-    main.textContent = sel.service.name[lang]||sel.service.name.sv;
-    const bits=[`${sel.service.price} ${t('kr')}`,`${sel.service.minutes} ${t('min')}`];
-    if(sel.staff) bits.push(sel.staff==='any'?t('anyStaff'):cfg.staff.find(s=>s.id===sel.staff).name);
-    if(sel.date&&sel.time) bits.push(`${sel.date} · ${sel.time}`);
-    sub.textContent=bits.join(' · ');
-  }
-  if(step===2) ready=!!sel.staff;
-  if(step===3) ready=!!(sel.date&&sel.time);
-  if(step===4) ready=true;
-  next.disabled=!ready;
+function drawRecap(){
+  if(step!==3||!sel.svc) return;
+  const st=sel.staff==='any'?t('anyStaff'):cfg.staff.find(s=>s.id===sel.staff).name;
+  const d=new Date(sel.date+'T12:00:00');
+  $('#recap').innerHTML=[
+    [t('rSvc'), svcName(sel.svc)],
+    [t('rDate'), d.toLocaleDateString(loc(),{weekday:'long',day:'numeric',month:'long'})],
+    [t('rTime'), sel.time],
+    [t('rStaff'), st]
+  ].map(([k,v])=>`<div><span>${k}</span><b>${v}</b></div>`).join('')+
+   `<div class="tot"><span>${t('rPrice')}</span><b>${sel.svc.price} ${t('kr')}</b></div>`;
 }
 
-$('#back').onclick=()=>{ step=Math.max(1,step-1); showErr(''); render(); };
-$('#next').onclick=async ()=>{
+function drawBar(){
+  const b=$('#back'), n=$('#next');
+  b.hidden=step===1; b.textContent=t('back');
+  n.textContent = step===3 ? t('confirm') : t('next');
+  let ok=false;
+  if(step===1){ $('#sumMain').textContent=t('pickSvc'); $('#sumSub').textContent=''; }
+  else if(sel.svc){
+    $('#sumMain').textContent=svcName(sel.svc);
+    const p=[`${sel.svc.price} ${t('kr')}`,`${sel.svc.minutes} ${t('min')}`];
+    if(sel.date&&sel.time){
+      const d=new Date(sel.date+'T12:00:00');
+      p.push(`${d.toLocaleDateString(loc(),{day:'numeric',month:'short'})} ${sel.time}`);
+    }
+    $('#sumSub').textContent=p.join(' · ');
+  }
+  if(step===2) ok=!!(sel.date&&sel.time);
+  if(step===3) ok=true;
+  n.disabled=!ok;
+}
+
+const scrollTop=()=>window.scrollTo({top:0,behavior:'smooth'});
+$('#back').onclick=()=>{ step=Math.max(1,step-1); showErr(''); render(); scrollTop(); };
+$('#next').onclick=async()=>{
   showErr('');
-  if(step<4){ step++; render(); return; }
+  if(step<3){ step++; render(); scrollTop(); return; }
   const name=$('#fName').value.trim(), phone=$('#fPhone').value.trim();
-  if(name.length<2||phone.length<6){ showErr(t('fillName')); return; }
-  const btn=$('#next'); btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  if(name.length<2||phone.length<6){ showErr(t('fill')); return; }
+  const n=$('#next'); n.disabled=true; n.innerHTML='<span class="spin"></span>';
   try{
-    const b=await api('book',{
-      date:sel.date, time:sel.time, serviceId:sel.service.id, staffId:sel.staff||'any',
-      customer:name, phone:phone, email:$('#fMail').value.trim(), note:$('#fNote').value.trim()
-    });
+    const b=await api('book',{date:sel.date,time:sel.time,serviceId:sel.svc.id,staffId:sel.staff,
+      customer:name,phone:phone,email:$('#fMail').value.trim(),note:$('#fNote').value.trim()});
     $('#bCode').textContent=b.code;
-    $('#bRecap').innerHTML=[
-      [t('recapDate'), b.date],[t('recapTime'), b.time+' – '+b.end],
-      [t('recapSvc'), b.service[lang]||b.service.sv],[t('recapStaff'), b.staff],
-      [t('recapPrice'), b.price+' '+t('kr')]
+    const d=new Date(b.date+'T12:00:00');
+    $('#doneRecap').innerHTML=[
+      [t('rSvc'), b.service[lang]||b.service.sv],
+      [t('rDate'), d.toLocaleDateString(loc(),{weekday:'long',day:'numeric',month:'long'})],
+      [t('rTime'), b.time+' – '+b.end],
+      [t('rStaff'), b.staff],
+      [t('rPrice'), b.price+' '+t('kr')]
     ].map(([k,v])=>`<div><span>${k}</span><b>${v}</b></div>`).join('');
-    step=5; render();
-    window.scrollTo({top:0,behavior:'smooth'});
+    step=4; render(); scrollTop();
   }catch(e){
     showErr(e.message);
-    if(/ledig|available|trống/i.test(e.message)){ step=3; render(); loadTimes(); }
-  }finally{ btn.innerHTML=t('confirm'); renderDock(); }
+    if(/ledig|available|trống/i.test(e.message)){ step=2; render(); loadTimes(); }
+  }finally{ n.disabled=false; n.textContent=t('confirm'); drawBar(); }
 };
 
-/* ---------- avboka ---------- */
 $('#fCancel').onclick=async ev=>{
   ev.preventDefault();
-  const code=prompt(t('cancelPrompt')); if(!code) return;
-  const phone=prompt(t('cancelPhone')); if(!phone) return;
-  try{ await api('cancel',{code,phone}); alert(t('cancelOk')); }
-  catch(e){ alert(e.message); }
+  const code=prompt(t('cPrompt')); if(!code) return;
+  const phone=prompt(t('cPhone')); if(!phone) return;
+  try{ await api('cancel',{code,phone}); alert(t('cOk')); }catch(e){ alert(e.message); }
 };
 </script>
 </body>
