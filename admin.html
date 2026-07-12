@@ -316,6 +316,33 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
   </div>
 </div>
 
+<!-- MODAL: TJÄNST -->
+<div class="mask" id="smask">
+  <div class="modal">
+    <h2 id="sTitle" data-t="svcNew">Ny behandling</h2>
+    <div class="code" data-t="svcSub">Namnet visas för kunden. Priset i kronor.</div>
+    <div class="err" id="sErr" hidden></div>
+
+    <div class="field"><label data-t="svcNameSv">Namn (svenska)</label><input type="text" id="sNameSv"></div>
+    <div class="two">
+      <div class="field"><label data-t="svcNameEn">Namn (engelska)</label><input type="text" id="sNameEn"></div>
+      <div class="field"><label data-t="svcNameVi">Namn (vietnamesiska)</label><input type="text" id="sNameVi"></div>
+    </div>
+    <div class="two">
+      <div class="field"><label data-t="svcMin">Längd (minuter)</label><input type="number" id="sMin" min="5" step="5" inputmode="numeric"></div>
+      <div class="field"><label data-t="svcPrice">Pris (kr)</label><input type="number" id="sPrice" min="0" step="10" inputmode="numeric"></div>
+    </div>
+    <div class="field"><label data-t="svcCat">Kategori</label><input type="text" id="sCat" list="catList" placeholder="Manikyr"><datalist id="catList"></datalist></div>
+    <div class="chk"><input type="checkbox" id="sActive" checked><label for="sActive" style="margin:0;font-weight:400" data-t="svcActive">Bokningsbar för kunder</label></div>
+
+    <div class="acts">
+      <button class="btn line" id="sClose" data-t="close">Stäng</button>
+      <button class="btn danger" id="sDel" data-t="svcDel">Ta bort</button>
+      <button class="btn" id="sSave" data-t="save">Spara</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ====== SAMMA API_URL SOM index.html ====== */
 const API_URL = 'https://script.google.com/macros/s/AKfycbxAgRKP5UWX9V8O4OqlJpAQH5ynSxgnCTNMnfng_9YybMHALJFQ98Rxindhuqls2hk/exec';
@@ -809,6 +836,11 @@ async function delBlock(id){
   try{ await api('adminBlockDelete',{id}); await load(); }
   catch(e){ alert(e.message); }
 }
+
+/* Esc để đóng mọi cửa sổ */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape') document.querySelectorAll('.mask.on').forEach(m=>m.classList.remove('on'));
+});
 
 function err(sel,m){ const e=$(sel); e.textContent=m; e.hidden=false; e.scrollIntoView({block:'nearest'}); }
 </script>
