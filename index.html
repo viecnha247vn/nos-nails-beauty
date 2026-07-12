@@ -94,6 +94,42 @@ footer a.tel{color:var(--brick);font-weight:600;text-decoration:none}
 .badge i{width:7px;height:7px;border-radius:50%;background:#5FD3A3;font-style:normal;box-shadow:0 0 0 3px rgba(95,211,163,.25)}
 .badge.shut i{background:#E8B4AC;box-shadow:none}
 
+/* ---------- Galleri ---------- */
+.gal{padding:22px 0 6px}
+.galhead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:12px}
+.galhead h2{margin:0}
+.galhint{font-size:12px;color:var(--grey)}
+.galrow{display:grid;grid-auto-flow:column;grid-auto-columns:140px;gap:10px;overflow-x:auto;
+  padding:2px 2px 8px;scroll-snap-type:x mandatory;scrollbar-width:none}
+.galrow::-webkit-scrollbar{display:none}
+@media(min-width:640px){
+  .galrow{grid-auto-flow:row;grid-template-columns:repeat(5,1fr);grid-auto-columns:auto;overflow:visible}
+}
+.gcard{scroll-snap-align:start;border:1px solid var(--line);padding:0;background:var(--card);cursor:pointer;
+  border-radius:14px;overflow:hidden;text-align:left;transition:.16s;display:block}
+.gcard:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(140,58,49,.16);border-color:var(--brick)}
+.gcard .ph{position:relative;aspect-ratio:4/5;overflow:hidden;background:#F1EAE7}
+.gcard .ph img,.gcard .ph svg{width:100%;height:100%;object-fit:cover;display:block}
+.gcard .cap{padding:8px 10px 10px}
+.gcard .cap b{display:block;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gcard .cap small{font-size:11px;color:var(--brick);font-weight:600}
+
+/* xem ảnh lớn */
+.lightbox{position:fixed;inset:0;background:rgba(20,14,13,.93);z-index:60;display:flex;
+  align-items:center;justify-content:center;flex-direction:column;padding:20px}
+.lightbox img,.lightbox svg{max-width:min(100%,420px);max-height:70vh;border-radius:14px}
+.lbcap{color:#fff;font-size:15px;font-weight:600;margin-top:16px}
+.lbsub{color:rgba(255,255,255,.6);font-size:13px;margin-top:4px}
+.lbbtn{margin-top:16px;background:var(--brick);color:#fff;border:0;border-radius:8px;padding:12px 22px;
+  font-weight:600;cursor:pointer}
+.lbbtn:hover{background:var(--brick-d)}
+.lbx{position:absolute;top:14px;right:16px;background:rgba(255,255,255,.15);border:0;color:#fff;
+  width:38px;height:38px;border-radius:50%;font-size:17px;cursor:pointer}
+.lbnav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.14);border:0;color:#fff;
+  width:44px;height:44px;border-radius:50%;font-size:24px;cursor:pointer;line-height:1}
+.lbnav.prev{left:12px} .lbnav.next{right:12px}
+.lbnav:hover,.lbx:hover{background:rgba(255,255,255,.3)}
+
 /* ---------- Sektioner ---------- */
 h2{font-size:17px;font-weight:700;margin:22px 0 10px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
@@ -256,6 +292,26 @@ footer a{color:var(--brick)}
   <div class="htable" id="hTable" hidden></div>
 </div></div>
 
+<section class="gal" id="gal" hidden>
+  <div class="wrap">
+    <div class="galhead">
+      <h2 data-t="galH">Senaste naglarna</h2>
+      <span class="galhint" data-t="galHint">Svep för fler →</span>
+    </div>
+    <div class="galrow" id="galRow"></div>
+  </div>
+</section>
+
+<div class="lightbox" id="lb" hidden>
+  <button class="lbx" id="lbClose">✕</button>
+  <button class="lbnav prev" id="lbPrev">‹</button>
+  <div id="lbBox"></div>
+  <button class="lbnav next" id="lbNext">›</button>
+  <p class="lbcap" id="lbCap"></p>
+  <p class="lbsub" id="lbSub"></p>
+  <button class="lbbtn" id="lbBook" data-t="galBook">Boka den här stilen</button>
+</div>
+
 <main class="wrap">
   <div class="err" id="err" hidden></div>
 
@@ -349,7 +405,7 @@ const T={
  sv:{h1:'Välj behandling',h2:'Välj tid',h3:'Dina uppgifter',loading:'Laddar…',
   fName:'Namn',fPhone:'Telefon',fMail:'E-post',fNote:'Meddelande (valfritt)',
   next:'Nästa',back:'Tillbaka',confirm:'Bekräfta bokning',pickSvc:'Välj en behandling',
-  pick:'Välj',picked:'Vald',anyStaff:'Alla',open:'Öppet nu',closed:'Stängt nu',callUs:'Ring oss',allHours:'Alla öppettider ▾',hideHours:'Dölj ▴',shut:'Stängt',todayIs:'Idag',
+  pick:'Välj',picked:'Vald',anyStaff:'Alla',open:'Öppet nu',closed:'Stängt nu',callUs:'Ring oss',galH:'Populära stilar',galHint:'Tryck på en stil för att boka →',galBook:'Boka den här stilen',allHours:'Alla öppettider ▾',hideHours:'Dölj ▴',shut:'Stängt',todayIs:'Idag',
   today:'Idag',tomorrow:'Imorgon',firstFree:'⚡ Första lediga',calendar:'📅 Välj datum',legFree:'Lediga tider',legFull:'Fullbokat / stängt',bookUntil:'Bokningsbart t.o.m.',
   morning:'Förmiddag',afternoon:'Eftermiddag',evening:'Kväll',
   tapHint:'Tryck på en tid så går du direkt vidare.',
@@ -362,7 +418,7 @@ const T={
  en:{h1:'Choose a treatment',h2:'Choose a time',h3:'Your details',loading:'Loading…',
   fName:'Name',fPhone:'Phone',fMail:'Email',fNote:'Message (optional)',
   next:'Next',back:'Back',confirm:'Confirm booking',pickSvc:'Choose a treatment',
-  pick:'Select',picked:'Selected',anyStaff:'Anyone',open:'Open now',closed:'Closed now',callUs:'Call us',allHours:'All opening hours ▾',hideHours:'Hide ▴',shut:'Closed',todayIs:'Today',
+  pick:'Select',picked:'Selected',anyStaff:'Anyone',open:'Open now',closed:'Closed now',callUs:'Call us',galH:'Popular styles',galHint:'Tap a style to book →',galBook:'Book this style',allHours:'All opening hours ▾',hideHours:'Hide ▴',shut:'Closed',todayIs:'Today',
   today:'Today',tomorrow:'Tomorrow',firstFree:'⚡ First available',calendar:'📅 Pick a date',legFree:'Free times',legFull:'Fully booked / closed',bookUntil:'Bookable until',
   morning:'Morning',afternoon:'Afternoon',evening:'Evening',
   tapHint:'Tap a time and you go straight on.',
@@ -375,7 +431,7 @@ const T={
  vi:{h1:'Chọn dịch vụ',h2:'Chọn giờ',h3:'Thông tin của bạn',loading:'Đang tải…',
   fName:'Họ tên',fPhone:'Điện thoại',fMail:'Email',fNote:'Ghi chú (không bắt buộc)',
   next:'Tiếp',back:'Quay lại',confirm:'Xác nhận đặt lịch',pickSvc:'Chọn dịch vụ',
-  pick:'Chọn',picked:'Đã chọn',anyStaff:'Thợ nào cũng được',open:'Đang mở cửa',closed:'Đang đóng cửa',callUs:'Gọi tiệm',allHours:'Xem cả tuần ▾',hideHours:'Thu gọn ▴',shut:'Nghỉ',todayIs:'Hôm nay',
+  pick:'Chọn',picked:'Đã chọn',anyStaff:'Thợ nào cũng được',open:'Đang mở cửa',closed:'Đang đóng cửa',callUs:'Gọi tiệm',galH:'Mẫu đang được chuộng',galHint:'Bấm vào mẫu để đặt →',galBook:'Đặt mẫu này',allHours:'Xem cả tuần ▾',hideHours:'Thu gọn ▴',shut:'Nghỉ',todayIs:'Hôm nay',
   today:'Hôm nay',tomorrow:'Ngày mai',firstFree:'⚡ Giờ sớm nhất',calendar:'📅 Chọn ngày',legFree:'Còn chỗ',legFull:'Kín / nghỉ',bookUntil:'Đặt được tới',
   morning:'Buổi sáng',afternoon:'Buổi chiều',evening:'Buổi tối',
   tapHint:'Bấm vào giờ là qua bước tiếp theo luôn.',
@@ -440,9 +496,119 @@ document.querySelectorAll('.langs button').forEach(b=>b.onclick=()=>{
     $('#sPhone').textContent=ph; $('#sPhone').href=tel;
     $('#callBtn').href=tel;
     $('#fPhoneLink').textContent=ph; $('#fPhoneLink').href=tel;
+    drawGallery();
     render();
   }catch(e){ showErr(e.message); }
 })();
+
+/* ---------- galleri: 10 stilar (vektor, ingen upphovsrätt) ---------- */
+const DESIGNS=[
+  {k:'french',   name:{sv:'Fransk klassisk',en:'Classic French',vi:'French cổ điển'},   base:'#F3DDD6',tip:'#FFFFFF',match:'gel'},
+  {k:'nude',     name:{sv:'Nude glans',     en:'Glossy nude',   vi:'Nude bóng'},        base:'#DFC0AE',match:'manik'},
+  {k:'red',      name:{sv:'Röd lack',       en:'Red lacquer',   vi:'Đỏ lacquer'},       base:'#C0231F',match:'gel'},
+  {k:'burgundy', name:{sv:'Vinröd matt',    en:'Matte burgundy',vi:'Đỏ rượu lì'},       base:'#6E2C35',matte:1,match:'gel'},
+  {k:'ombre',    name:{sv:'Ombré rosa',     en:'Pink ombré',    vi:'Ombré hồng'},       base:'#E9B9C6',base2:'#FFF3F5',match:'gel'},
+  {k:'glitter',  name:{sv:'Glitter guld',   en:'Gold glitter',  vi:'Nhũ vàng'},         base:'#C99B4E',glit:1,match:'gel'},
+  {k:'chrome',   name:{sv:'Krom silver',    en:'Chrome',        vi:'Chrome bạc'},       base:'#B9BFC6',chrome:1,match:'gel'},
+  {k:'marble',   name:{sv:'Marmor',         en:'Marble',        vi:'Vân đá'},           base:'#F1EDEA',marble:1,match:'akryl'},
+  {k:'almond',   name:{sv:'Lång mandelform',en:'Long almond',   vi:'Móng dài almond'},  base:'#D89AA4',long:1,match:'akryl'},
+  {k:'pedi',     name:{sv:'Pedikyr korall', en:'Coral pedicure',vi:'Chân màu san hô'},  base:'#E86A54',match:'pedi'}
+];
+
+function nailSVG(d,big){
+  const w=200,h=250;
+  const g1=`g${d.k}1`, g2=`g${d.k}2`;
+  const nails=[0,1,2,3].map(i=>{
+    const x=26+i*42, y=54+Math.abs(i-1.4)*11, nh=d.long?92:74, nw=30;
+    let fill=`url(#${g1})`;
+    return `<g>
+      <rect x="${x}" y="${y}" width="${nw}" height="${nh}" rx="15" fill="${fill}"/>
+      ${d.tip?`<path d="M${x} ${y+16} a15 15 0 0 1 ${nw} 0 z" fill="${d.tip}"/>`:''}
+      ${d.glit?`<g opacity=".85">${Array.from({length:9},(_,k)=>`<circle cx="${x+5+((k*11)%(nw-8))}" cy="${y+10+((k*17)%(nh-16))}" r="1.6" fill="#FFF2CF"/>`).join('')}</g>`:''}
+      ${d.marble?`<path d="M${x+3} ${y+nh*0.7} q10 -22 14 -8 t13 -14" stroke="#B9A79E" stroke-width="1.6" fill="none" opacity=".8"/>
+                  <path d="M${x+2} ${y+nh*0.4} q12 -14 18 2" stroke="#CDBDB4" stroke-width="1.2" fill="none"/>`:''}
+      ${d.chrome?`<rect x="${x}" y="${y}" width="${nw}" height="${nh}" rx="15" fill="url(#${g2})" opacity=".9"/>`:''}
+      ${!d.matte?`<ellipse cx="${x+9}" cy="${y+18}" rx="4" ry="9" fill="#fff" opacity=".38"/>`:''}
+    </g>`;
+  }).join('');
+  return `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" role="img">
+    <defs>
+      <linearGradient id="${g1}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${d.base2||d.base}"/>
+        <stop offset="100%" stop-color="${d.base}"/>
+      </linearGradient>
+      <linearGradient id="${g2}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#fff" stop-opacity=".75"/>
+        <stop offset="45%" stop-color="#8FA0B0" stop-opacity=".35"/>
+        <stop offset="100%" stop-color="#fff" stop-opacity=".6"/>
+      </linearGradient>
+      <linearGradient id="bg${d.k}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#FBF6F4"/><stop offset="100%" stop-color="#EFE4E0"/>
+      </linearGradient>
+    </defs>
+    <rect width="${w}" height="${h}" fill="url(#bg${d.k})"/>
+    <path d="M14 ${h} q30 -46 88 -46 t84 46 z" fill="#E7D8D2" opacity=".55"/>
+    ${nails}
+  </svg>`;
+}
+
+let gItems=[], gIdx=0;
+
+function drawGallery(){
+  const photos=(cfg.gallery||[]).filter(p=>p.url);
+  gItems = photos.length
+    ? photos.map(p=>({photo:p.url, title:p.title||'', svc:null}))
+    : DESIGNS.map(d=>({design:d, title:d.name[lang]||d.name.sv, svc:matchSvc(d.match)}));
+
+  $('#gal').hidden=false;
+  const row=$('#galRow'); row.innerHTML='';
+  gItems.forEach((it,i)=>{
+    const b=document.createElement('button'); b.className='gcard';
+    const media = it.photo
+      ? `<img src="${it.photo}" alt="${it.title}" loading="lazy">`
+      : nailSVG(it.design);
+    b.innerHTML=`<div class="ph">${media}</div>
+      <div class="cap"><b>${it.title}</b>${it.svc?`<small>${it.svc.price} ${t('kr')} · ${it.svc.minutes} ${t('min')}</small>`:''}</div>`;
+    const img=b.querySelector('img'); if(img) img.onerror=()=>b.remove();
+    b.onclick=()=>openLb(i);
+    row.appendChild(b);
+  });
+}
+
+/* mẫu nào ứng với dịch vụ nào */
+function matchSvc(key){
+  if(!key) return null;
+  const list=cfg.services;
+  const find=re=>list.find(s=>re.test((s.name.sv+' '+(s.category||'')).toLowerCase()));
+  if(key==='pedi')  return find(/pedik/) || list[0];
+  if(key==='akryl') return find(/akryl|förläng/) || find(/gel/) || list[0];
+  if(key==='gel')   return find(/gellack|gel/) || list[0];
+  return find(/manikyr|klassisk/) || list[0];
+}
+
+function openLb(i){
+  gIdx=i; const it=gItems[i];
+  $('#lbBox').innerHTML = it.photo ? `<img src="${it.photo}" alt="">` : nailSVG(it.design,true);
+  $('#lbCap').textContent=it.title;
+  $('#lbSub').textContent=it.svc? `${it.svc.name[lang]||it.svc.name.sv} · ${it.svc.price} ${t('kr')}` : '';
+  $('#lbBook').hidden=!it.svc;
+  $('#lb').hidden=false;
+}
+$('#lbClose').onclick=()=>$('#lb').hidden=true;
+$('#lb').onclick=e=>{ if(e.target===$('#lb')) $('#lb').hidden=true; };
+$('#lbPrev').onclick=e=>{ e.stopPropagation(); openLb((gIdx-1+gItems.length)%gItems.length); };
+$('#lbNext').onclick=e=>{ e.stopPropagation(); openLb((gIdx+1)%gItems.length); };
+$('#lbBook').onclick=()=>{
+  const it=gItems[gIdx];
+  $('#lb').hidden=true;
+  if(it.svc) chooseService(it.svc);
+};
+document.addEventListener('keydown',e=>{
+  if($('#lb').hidden) return;
+  if(e.key==='Escape') $('#lb').hidden=true;
+  if(e.key==='ArrowLeft') $('#lbPrev').click();
+  if(e.key==='ArrowRight') $('#lbNext').click();
+});
 
 /* Giờ hôm nay – dòng ngắn gọn */
 function todayLine(){
@@ -486,6 +652,7 @@ function openBadge(){
 /* ---------- render ---------- */
 function render(){
   txt();
+  if(cfg && gItems.length) drawGallery();
   if(cfg){
     $('#sToday').textContent=todayLine();
     $('#hTable').innerHTML=hoursTable();
