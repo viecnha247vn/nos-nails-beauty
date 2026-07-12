@@ -218,6 +218,13 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
 .presets{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
 .presets button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer}
 .presets button:hover{border-color:var(--ink)}
+.galgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;margin-bottom:10px}
+.gitem{position:relative;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fff;cursor:pointer;padding:0}
+.gitem img{width:100%;height:120px;object-fit:cover;display:block}
+.gitem small{display:block;padding:5px 6px;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gitem.off{opacity:.45}
+.gitem .no{position:absolute;top:5px;right:5px;background:rgba(31,31,31,.7);color:#fff;font-size:10px;
+  padding:2px 6px;border-radius:99px;font-weight:700}
 .rtabs{display:flex;background:#F3EDEB;border-radius:99px;padding:3px;margin-bottom:14px}
 .rtabs button{flex:1;border:0;background:none;padding:8px;border-radius:99px;font-size:13px;font-weight:600;
   color:var(--muted);cursor:pointer}
@@ -275,7 +282,7 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
 <!-- APP -->
 <div id="app" hidden>
   <div class="top"><div class="wrap">
-    <div class="logo" id="salonName">N.O.S Nails Beauty Handen <small style="opacity:.6;font-size:11px;font-weight:400">v2.9</small></div>
+    <div class="logo" id="salonName">N.O.S Nails Beauty Handen <small style="opacity:.6;font-size:11px;font-weight:400">v3.0</small></div>
     <div class="langs"><button data-lang="sv" class="on">SV</button><button data-lang="vi">VI</button></div>
     <button class="btn ghost sm" id="logout" data-t="logout">Logga ut</button>
   </div></div>
@@ -310,6 +317,11 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
       <p class="note" data-t="svcNote">Ändringar syns direkt på bokningssidan.</p>
       <button class="newsvc" id="newSvc" data-t="newSvc">+ Ny behandling</button>
       <div id="svcList"></div>
+
+      <h3 style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:22px 0 8px 2px" data-t="galH">Galleri</h3>
+      <p class="note" data-t="galNote">Bilder som visas högst upp på bokningssidan.</p>
+      <div class="galgrid" id="galGrid"></div>
+      <button class="newsvc" id="newPhoto" data-t="newPhoto">+ Lägg till bild</button>
     </div>
   </div>
 
@@ -391,6 +403,27 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
       <button class="btn line" id="ebClose" data-t="close">Stäng</button>
       <button class="btn danger" id="ebDel" data-t="ebDel">Ta bort</button>
       <button class="btn" id="ebSave" data-t="save">Spara</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: BILD -->
+<div class="mask" id="gmask">
+  <div class="modal">
+    <h2 data-t="gH">Bild</h2>
+    <div class="code" data-t="gSub">Klistra in en länk till bilden (https://…)</div>
+    <div class="err" id="gErr" hidden></div>
+    <div class="field"><label data-t="gUrl">Bildlänk</label><input type="url" id="gUrl" placeholder="https://…/mall1.jpg"></div>
+    <img id="gPrev" style="width:100%;max-height:220px;object-fit:cover;border-radius:10px;margin-bottom:12px;display:none">
+    <div class="two">
+      <div class="field"><label data-t="gTitle">Text</label><input type="text" id="gTitle" placeholder="Gellack rosa"></div>
+      <div class="field"><label data-t="gSort">Ordning</label><input type="number" id="gSort" value="1" min="1"></div>
+    </div>
+    <div class="chk"><input type="checkbox" id="gActive" checked><label for="gActive" style="margin:0;font-weight:400" data-t="gActive">Visas för kunder</label></div>
+    <div class="acts">
+      <button class="btn line" id="gClose" data-t="close">Stäng</button>
+      <button class="btn danger" id="gDel" data-t="svcDel">Ta bort</button>
+      <button class="btn" id="gSave" data-t="save">Spara</button>
     </div>
   </div>
 </div>
@@ -486,6 +519,9 @@ const T={
   svcSub:'Namnet visas för kunden. Priset i kronor.',svcNameSv:'Namn (svenska)',svcNameEn:'Namn (engelska)',
   svcNameVi:'Namn (vietnamesiska)',svcMin:'Längd (minuter)',svcPrice:'Pris (kr)',svcCat:'Kategori',
   svcActive:'Bokningsbar för kunder',svcDel:'Ta bort',svcOff:'Dold',svcNoCat:'Övrigt',
+  galH:'Galleri',galNote:'Bilder som visas högst upp på bokningssidan.',newPhoto:'+ Lägg till bild',
+  gH:'Bild',gSub:'Klistra in en länk till bilden (https://…)',gUrl:'Bildlänk',gTitle:'Text',gSort:'Ordning',
+  gActive:'Visas för kunder',gDelAsk:'Ta bort bilden?',gHidden:'Dold',
   svcDelAsk:'Ta bort behandlingen?',svcHidden:'Behandlingen används i kommande bokningar – den döljs istället för kunderna.',today:'Idag',sBookings:'Bokningar',sRevenue:'Värde',sHours:'Bokad tid',
   newB:'+ Ny bokning',blockB:'Spärra tid',
   lSvc:'Behandling',lStaff:'Tekniker',lPrice:'Pris',lDate:'Datum',lTimeNow:'Vald tid',lFree:'Lediga tider',
@@ -509,6 +545,9 @@ const T={
   svcSub:'Tên hiện cho khách thấy. Giá tính bằng kronor.',svcNameSv:'Tên (tiếng Thụy Điển)',svcNameEn:'Tên (tiếng Anh)',
   svcNameVi:'Tên (tiếng Việt)',svcMin:'Thời lượng (phút)',svcPrice:'Giá (kr)',svcCat:'Nhóm',
   svcActive:'Cho khách đặt',svcDel:'Xoá',svcOff:'Đang ẩn',svcNoCat:'Khác',
+  galH:'Mẫu nails',galNote:'Ảnh hiện ở đầu trang đặt lịch của khách.',newPhoto:'+ Thêm ảnh',
+  gH:'Ảnh mẫu',gSub:'Dán link ảnh (https://…)',gUrl:'Link ảnh',gTitle:'Chú thích',gSort:'Thứ tự',
+  gActive:'Cho khách xem',gDelAsk:'Xoá ảnh này?',gHidden:'Đang ẩn',
   svcDelAsk:'Xoá dịch vụ này?',svcHidden:'Dịch vụ đang có lịch khách sắp tới — hệ thống chỉ ẩn khỏi trang khách, không xoá.',today:'Hôm nay',sBookings:'Lượt khách',sRevenue:'Doanh thu',sHours:'Giờ đã kín',
   newB:'+ Thêm lịch',blockB:'Khoá giờ',
   lSvc:'Dịch vụ',lStaff:'Thợ',lPrice:'Giá',lDate:'Ngày',lTimeNow:'Giờ đã chọn',lFree:'Giờ còn trống',
@@ -606,7 +645,7 @@ async function load(){
   try{
     if(view==='day'){ day=await api('adminDay',{date}); }
     else if(view==='week'){ const from=monday(date); weekData=await api('adminRange',{from,to:addDays(from,6)}); }
-    else{ svcData=await api('adminServices'); cfg=await api('adminLogin'); }
+    else{ svcData=await api('adminServices'); galData=await api('adminGallery'); cfg=await api('adminLogin'); }
     paint();
   }catch(e){ $('#cols').innerHTML='<p class="none">'+e.message+'</p>'; }
 }
@@ -640,9 +679,60 @@ function paintServices(){
     });
     box.appendChild(g);
   });
+  paintGallery();
   const dl=$('#catList'); dl.innerHTML='';
   (svcData.categories||[]).forEach(c=>{ const o=document.createElement('option'); o.value=c; dl.appendChild(o); });
 }
+
+/* ---------- galleri ---------- */
+function paintGallery(){
+  const box=$('#galGrid'); if(!box) return;
+  box.innerHTML='';
+  const list=(galData&&galData.photos)||[];
+  if(!list.length){ box.innerHTML=`<p class="none">–</p>`; return; }
+  list.forEach(p=>{
+    const b=document.createElement('button');
+    b.className='gitem'+(p.active?'':' off');
+    b.innerHTML=`<img src="${p.url}" alt="" loading="lazy">${p.active?'':`<span class="no">${t('gHidden')}</span>`}<small>${p.title||'–'}</small>`;
+    b.onclick=()=>openPhoto(p);
+    box.appendChild(b);
+  });
+}
+$('#newPhoto').onclick=()=>openPhoto(null);
+$('#gClose').onclick=()=>$('#gmask').classList.remove('on');
+$('#gmask').onclick=e=>{ if(e.target===$('#gmask')) $('#gmask').classList.remove('on'); };
+$('#gUrl').oninput=()=>{
+  const u=$('#gUrl').value.trim();
+  const im=$('#gPrev');
+  if(/^https?:\/\//i.test(u)){ im.src=u; im.style.display='block'; } else im.style.display='none';
+};
+function openPhoto(p){
+  editPhoto=p; txt();
+  $('#gErr').hidden=true;
+  $('#gDel').hidden=!p;
+  $('#gUrl').value=p?p.url:'';
+  $('#gTitle').value=p?p.title:'';
+  $('#gSort').value=p?p.sort:((galData.photos||[]).length+1);
+  $('#gActive').checked=p?!!p.active:true;
+  const im=$('#gPrev');
+  if(p&&p.url){ im.src=p.url; im.style.display='block'; } else im.style.display='none';
+  $('#gmask').classList.add('on');
+}
+$('#gSave').onclick=async()=>{
+  $('#gErr').hidden=true;
+  const btn=$('#gSave'), old=btn.textContent; btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  try{
+    await api('adminGallerySave',{id:editPhoto?editPhoto.id:'',url:$('#gUrl').value.trim(),
+      title:$('#gTitle').value.trim(), sort:$('#gSort').value, active:$('#gActive').checked});
+    $('#gmask').classList.remove('on'); await load();
+  }catch(e){ err('#gErr',e.message); }
+  finally{ btn.disabled=false; btn.textContent=old; }
+};
+$('#gDel').onclick=async()=>{
+  if(!editPhoto||!confirm(t('gDelAsk'))) return;
+  try{ await api('adminGalleryDelete',{id:editPhoto.id}); $('#gmask').classList.remove('on'); await load(); }
+  catch(e){ err('#gErr',e.message); }
+};
 
 $('#newSvc').onclick=()=>openSvc(null);
 $('#sClose').onclick=()=>$('#smask').classList.remove('on');
@@ -955,6 +1045,7 @@ function toast(msg,bad){
 }
 const snap=()=>JSON.parse(JSON.stringify(day));
 
+let galData=null, editPhoto=null;
 let dragged=false;
 let blkDragged=false;
 let editBlk=null;
