@@ -37,7 +37,8 @@ button,input,select,textarea{font:inherit;color:inherit}
 .login p{color:var(--muted);font-size:14px;margin-bottom:18px}
 
 /* toolbar */
-.tools{display:flex;align-items:center;gap:8px;margin:18px 0 14px;flex-wrap:wrap}
+.tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;position:sticky;top:var(--topH,56px);z-index:20;
+  background:var(--paper);padding:12px 0 10px;margin-bottom:4px;box-shadow:0 6px 10px -6px rgba(42,31,29,.10)}
 .tabs{display:flex;background:#fff;border:1px solid var(--line);border-radius:99px;padding:3px}
 .tabs button{border:0;background:none;padding:8px 18px;border-radius:99px;font-weight:700;font-size:13px;cursor:pointer;color:var(--muted)}
 .tabs button.on{background:var(--brick);color:#fff}
@@ -59,7 +60,7 @@ select{-webkit-appearance:none;appearance:none;
 
 /* DAGSVY: schema-rutnät 15 min */
 .grid{background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:80px;overflow:visible}
-.ghead{display:grid;position:sticky;top:var(--topH,56px);z-index:15;background:#fff;
+.ghead{display:grid;position:sticky;top:var(--headH,120px);z-index:15;background:#fff;
   border-bottom:2px solid var(--line);border-radius:11px 11px 0 0;
   box-shadow:0 3px 8px rgba(42,31,29,.10)}
 .ghead .gh{padding:8px 4px;text-align:center;border-left:1px solid var(--line);min-width:0}
@@ -207,6 +208,22 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
 .presets{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
 .presets button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:7px 13px;font-size:12px;font-weight:700;cursor:pointer}
 .presets button:hover{border-color:var(--ink)}
+.rtabs{display:flex;background:#F3EDEB;border-radius:99px;padding:3px;margin-bottom:14px}
+.rtabs button{flex:1;border:0;background:none;padding:8px;border-radius:99px;font-size:13px;font-weight:600;
+  color:var(--muted);cursor:pointer}
+.rtabs button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(42,31,29,.12)}
+.rbig{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.rbig div{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 10px;text-align:center}
+.rbig b{display:block;font-size:20px;font-weight:700}
+.rbig .m{color:var(--brick)}
+.rbig span{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.rtab{width:100%;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.rtab .r{display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid var(--line);font-size:14px}
+.rtab .r:first-child{border-top:0}
+.rtab .r .n{flex:1;font-weight:600;display:flex;align-items:center;gap:7px}
+.rtab .r .c{color:var(--muted);font-size:13px}
+.rtab .r .v{font-weight:700;color:var(--brick);min-width:74px;text-align:right}
+.rtab .r.sum{background:#F9F5F4;font-weight:700}
 .quickblk{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#F3EDEB;border:1px dashed var(--line);
   border-radius:10px;padding:8px 10px;margin-bottom:14px}
 .quickblk span{font-size:12px;font-weight:600;color:var(--muted);margin-right:2px}
@@ -264,17 +281,12 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
       <div class="nav"><button id="prev">‹</button><button id="next">›</button></div>
       <button class="btn line sm" id="todayBtn" data-t="today">Idag</button>
       <input type="date" id="datePick" style="width:auto">
+      <button class="btn line sm" id="repBtn" data-t="report">📊 Rapport</button>
       <div class="vtabs" id="vtabs">
         <button id="vGrid" class="on" data-t="vGrid">Schema</button>
         <button id="vList" data-t="vList">Lista</button>
         <button id="vCols" data-t="vCols">Per tekniker</button>
       </div>
-    </div>
-
-    <div class="sum">
-      <div><b id="sCount">0</b><span data-t="sBookings">Bokningar</span></div>
-      <div class="rev"><b id="sRev">0 kr</b><span data-t="sRevenue">Värde</span></div>
-      <div><b id="sTime">0 h</b><span data-t="sHours">Bokad tid</span></div>
     </div>
 
     <p class="ghint" id="gHint" data-t="gridHint">Dra en bokning till en annan tekniker eller tid. Tryck på en tom ruta för att boka.</p>
@@ -350,6 +362,21 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
   </div>
 </div>
 
+<!-- MODAL: RAPPORT -->
+<div class="mask" id="rmask">
+  <div class="modal">
+    <h2 data-t="repH">Rapport</h2>
+    <div class="code" id="rRange"></div>
+    <div class="rtabs">
+      <button id="rDay" class="on" data-t="rDay">Dag</button>
+      <button id="rWeek" data-t="rWeek">Vecka</button>
+      <button id="rMonth" data-t="rMonth">Månad</button>
+    </div>
+    <div id="rBody"><p class="none" data-t="loading">…</p></div>
+    <div class="acts"><button class="btn line" id="rClose" style="width:100%" data-t="close">Stäng</button></div>
+  </div>
+</div>
+
 <!-- MODAL: SPÄRRA TID -->
 <div class="mask" id="bmask">
   <div class="modal">
@@ -415,8 +442,10 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbxAgRKP5UWX9V8O4OqlJpAQ
 
 const T={
  sv:{loginH:'Adminpanel',loginP:'Ange adminnyckeln från fliken Settings.',loginB:'Logga in',logout:'Logga ut',
-  tabDay:'Dag',tabWeek:'Vecka',tabSvc:'Tjänster',vGrid:'Schema',vList:'Lista',vCols:'Per tekniker',phoneCall:'Ring',
-  gridHint:'Dra en bokning till en annan tekniker eller tid. Tryck på en tom ruta för att boka eller spärra.',
+  tabDay:'Dag',tabWeek:'Vecka',tabSvc:'Tjänster',vGrid:'Schema',vList:'Lista',vCols:'Per tekniker',phoneCall:'Ring',report:'📊 Rapport',
+  repH:'Rapport',rDay:'Dag',rWeek:'Vecka',rMonth:'Månad',rBookings:'Bokningar',rRevenue:'Värde',rHours:'Timmar',
+  rPerStaff:'Per tekniker',rTotal:'Totalt',rNoData:'Inga bokningar i perioden.',
+  gridHint:'Dra bokningar och spärrar mellan tekniker/tider. Dra i kanten för att ändra längd. Dubbelklick tar bort en spärr.',
   qbLabel:'Spärra istället:',qbLunch:'🍽️ Lunch 60',qbPaus:'☕ Paus 30',qbMore:'🔒 Annat…',
   lunchWord:'Lunch',pausWord:'Paus',
   freeNow:'Ledig nu',nextFree:'Nästa',fullDay:'Fullbokad',closedDay:'Stängt denna dag.',moveAsk:'Flytta bokningen?',
@@ -436,8 +465,10 @@ const T={
   pickTime:'Välj en tid.',needName:'Ange kundens namn.',anyStaff:'Först ledig',
   confirmCancel:'Avboka den här tiden?',confirmDelBlock:'Ta bort spärren?',week:'Vecka'},
  vi:{loginH:'Trang quản lý',loginP:'Nhập adminKey trong tab Settings.',loginB:'Đăng nhập',logout:'Thoát',
-  tabDay:'Ngày',tabWeek:'Tuần',tabSvc:'Dịch vụ',vGrid:'Lịch',vList:'Danh sách',vCols:'Theo thợ',phoneCall:'Gọi',
-  gridHint:'Kéo lịch khách sang thợ khác hoặc giờ khác. Bấm ô trống để thêm lịch hoặc khoá giờ.',
+  tabDay:'Ngày',tabWeek:'Tuần',tabSvc:'Dịch vụ',vGrid:'Lịch',vList:'Danh sách',vCols:'Theo thợ',phoneCall:'Gọi',report:'📊 Báo cáo',
+  repH:'Báo cáo',rDay:'Ngày',rWeek:'Tuần',rMonth:'Tháng',rBookings:'Lượt khách',rRevenue:'Doanh thu',rHours:'Số giờ',
+  rPerStaff:'Theo thợ',rTotal:'Tổng cộng',rNoData:'Kỳ này chưa có khách.',
+  gridHint:'Kéo lịch khách và giờ nghỉ sang thợ/giờ khác. Kéo mép trên–dưới để co giãn giờ nghỉ. Bấm đúp để bỏ khoá.',
   qbLabel:'Hoặc khoá giờ:',qbLunch:'🍽️ Nghỉ trưa 60',qbPaus:'☕ Giải lao 30',qbMore:'🔒 Khác…',
   lunchWord:'Nghỉ trưa',pausWord:'Giải lao',
   freeNow:'Đang rảnh',nextFree:'Rảnh lúc',fullDay:'Kín cả ngày',closedDay:'Ngày này tiệm nghỉ.',moveAsk:'Chuyển lịch này?',
@@ -513,7 +544,7 @@ function syncTabs(){
   $('#tabSvc').classList.toggle('on',view==='svc');
   $('#svcView').hidden = view!=='svc';
   $('#vtabs').hidden = view!=='day';
-  document.querySelector('.sum').hidden = view==='svc';
+  $('#repBtn').hidden = view==='svc';
   document.querySelector('.nav').hidden = view==='svc';
   $('#todayBtn').hidden = view==='svc';
   $('#datePick').hidden = view==='svc';
@@ -628,18 +659,13 @@ $('#sDel').onclick=async()=>{
   }catch(e){ err('#sErr',e.message); }
 };
 
-function setSum(tot){
-  $('#sCount').textContent=tot.count;
-  $('#sRev').textContent=tot.revenue.toLocaleString('sv-SE')+' kr';
-  $('#sTime').textContent=(tot.minutes/60).toFixed(1).replace('.0','')+' h';
-}
+
 
 function paintDay(){
   if(!day) return;
   const d=new Date(day.date+'T12:00:00');
   $('#tTitle').textContent=d.toLocaleDateString(locale(),{day:'numeric',month:'long'});
   $('#tSub').textContent=WD[lang][d.getDay()];
-  setSum(day.totals);
   paintGrid();
   paintList();
 
@@ -695,8 +721,11 @@ function dayHours(){
 }
 
 function syncTopH(){
-  const h=document.querySelector('.top');
-  if(h) document.documentElement.style.setProperty('--topH', h.offsetHeight+'px');
+  const top=document.querySelector('.top');
+  const tools=document.querySelector('.tools');
+  const th=top?top.offsetHeight:56;
+  document.documentElement.style.setProperty('--topH', th+'px');
+  document.documentElement.style.setProperty('--headH', (th+(tools?tools.offsetHeight:0))+'px');
 }
 window.addEventListener('resize',syncTopH);
 
@@ -772,14 +801,21 @@ function paintGrid(){
       makeDraggable(e,b);
       col.appendChild(e);
     });
-    // giờ khoá
+    // giờ khoá (nghỉ trưa, giải lao, nghỉ phép)
     day.blocks.filter(b=>b.staffId===st.id||b.staffId.toUpperCase()==='ALLA').forEach(b=>{
+      const whole = b.staffId.toUpperCase()==='ALLA';
       const top=(Math.max(toMin(b.start),open)-open)/step*ROW;
       const ht=Math.max(ROW,(Math.min(toMin(b.end),close)-Math.max(toMin(b.start),open))/step*ROW-2);
       const e=document.createElement('div');
       e.className='ev blk'; e.style.top=top+'px'; e.style.height=ht+'px';
       e.innerHTML=`<b>${b.reason||'Spärrad'}</b><span>${b.start}–${b.end}</span>`;
       e.ondblclick=()=>delBlock(b.id);
+      if(!whole){                       // khoá cả tiệm thì không kéo trong 1 cột
+        e.appendChild(mkHandle('top'));
+        e.appendChild(mkHandle('bot'));
+        makeBlockDraggable(e,b);
+        makeResizable(e,b,open,close,step);
+      }else{ e.style.cursor='default'; }
       col.appendChild(e);
     });
     body.appendChild(col);
@@ -831,7 +867,95 @@ function countFree(staffId,open,close,step){
   return n;
 }
 
-/* ---------- kéo & thả (chuột + cảm ứng) ---------- */
+/* ---------- tay nắm + kéo giãn giờ khoá ---------- */
+function mkHandle(pos){
+  const h=document.createElement('div');
+  h.className='hnd '+pos;
+  return h;
+}
+
+function makeResizable(el,b,open,close,step){
+  el.querySelectorAll('.hnd').forEach(h=>{
+    const isTop=h.classList.contains('top');
+    h.addEventListener('pointerdown',e=>{
+      e.stopPropagation();
+      h.setPointerCapture(e.pointerId);
+      const y0=e.clientY, s0=toMin(b.start), e0=toMin(b.end);
+      let ns=s0, ne=e0;
+      el.classList.add('resizing');
+      const tip=document.createElement('div'); tip.className='evtip'; el.appendChild(tip);
+
+      const move=ev=>{
+        const dm=Math.round((ev.clientY-y0)/ROW)*step;
+        if(isTop){ ns=Math.min(Math.max(open,s0+dm), e0-step); }
+        else     { ne=Math.max(Math.min(close,e0+dm), s0+step); }
+        el.style.top=((ns-open)/step*ROW)+'px';
+        el.style.height=Math.max(ROW,(ne-ns)/step*ROW-2)+'px';
+        tip.textContent=`${toHM(ns)}–${toHM(ne)}`;
+      };
+      const up=async ev=>{
+        h.removeEventListener('pointermove',move);
+        h.removeEventListener('pointerup',up);
+        el.classList.remove('resizing'); tip.remove();
+        if(ns===s0 && ne===e0) return;
+        try{
+          await api('adminBlockUpdate',{id:b.id,start:toHM(ns),end:toHM(ne)});
+          await load();
+        }catch(err2){ alert(err2.message); paintGrid(); }
+      };
+      h.addEventListener('pointermove',move);
+      h.addEventListener('pointerup',up);
+    });
+  });
+}
+
+function makeBlockDraggable(el,b){
+  let startX,startY,moved=false,lastCell=null;
+  el.addEventListener('pointerdown',e=>{
+    if(e.target.classList.contains('hnd')) return;   // đang kéo giãn thì thôi
+    if(e.button>0) return;
+    startX=e.clientX; startY=e.clientY; moved=false;
+    el.setPointerCapture(e.pointerId);
+
+    const move=ev=>{
+      if(!moved && (Math.abs(ev.clientX-startX)>6||Math.abs(ev.clientY-startY)>6)){ moved=true; el.classList.add('drag'); }
+      if(!moved) return;
+      el.style.transform=`translate(${ev.clientX-startX}px,${ev.clientY-startY}px)`;
+      el.style.pointerEvents='none';
+      const tg=document.elementFromPoint(ev.clientX,ev.clientY);
+      const cell=tg && tg.closest ? tg.closest('.cell') : null;
+      el.style.pointerEvents='';
+      if(lastCell&&lastCell!==cell) lastCell.classList.remove('drop');
+      if(cell){ cell.classList.add('drop'); lastCell=cell; }
+    };
+    const up=async ev=>{
+      el.removeEventListener('pointermove',move);
+      el.removeEventListener('pointerup',up);
+      el.classList.remove('drag'); el.style.transform='';
+      if(lastCell) lastCell.classList.remove('drop');
+      if(!moved) return;
+
+      el.style.pointerEvents='none';
+      const tg=document.elementFromPoint(ev.clientX,ev.clientY);
+      const cell=tg && tg.closest ? tg.closest('.cell') : null;
+      el.style.pointerEvents='';
+      if(!cell) return;
+
+      const dur=toMin(b.end)-toMin(b.start);
+      const ns=toMin(cell.dataset.time);
+      if(cell.dataset.staff===b.staffId && cell.dataset.time===b.start) return;
+      try{
+        await api('adminBlockUpdate',{id:b.id,staffId:cell.dataset.staff,date:day.date,
+          start:toHM(ns),end:toHM(ns+dur)});
+        await load();
+      }catch(err2){ alert(err2.message); paintGrid(); }
+    };
+    el.addEventListener('pointermove',move);
+    el.addEventListener('pointerup',up);
+  });
+}
+
+/* ---------- kéo & thả lịch khách (chuột + cảm ứng) ---------- */
 let dragged=null;
 function makeDraggable(el,b){
   if(String(b.status).toLowerCase()==='avbokad') return;
@@ -935,7 +1059,6 @@ function paintWeek(){
   $('#tTitle').textContent=a.toLocaleDateString(locale(),{day:'numeric',month:'short'})+' – '+
                            b.toLocaleDateString(locale(),{day:'numeric',month:'short'});
   $('#tSub').textContent=t('week');
-  setSum(weekData.totals);
 
   const box=$('#week'); box.innerHTML='';
   weekData.days.forEach(dy=>{
@@ -1125,6 +1248,72 @@ async function delBlock(id){
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape') document.querySelectorAll('.mask.on').forEach(m=>m.classList.remove('on'));
 });
+
+/* ================= BÁO CÁO ================= */
+let repMode='day';
+$('#repBtn').onclick=()=>{ $('#rmask').classList.add('on'); loadReport(); };
+$('#rClose').onclick=()=>$('#rmask').classList.remove('on');
+$('#rmask').onclick=e=>{ if(e.target===$('#rmask')) $('#rmask').classList.remove('on'); };
+$('#rDay').onclick  =()=>{ repMode='day';   loadReport(); };
+$('#rWeek').onclick =()=>{ repMode='week';  loadReport(); };
+$('#rMonth').onclick=()=>{ repMode='month'; loadReport(); };
+
+function repRange(){
+  if(repMode==='day')  return [date,date];
+  if(repMode==='week'){ const f=monday(date); return [f,addDays(f,6)]; }
+  const d=new Date(date+'T12:00:00');
+  const f=new Date(d.getFullYear(),d.getMonth(),1), l=new Date(d.getFullYear(),d.getMonth()+1,0);
+  return [iso(f),iso(l)];
+}
+
+async function loadReport(){
+  ['rDay','rWeek','rMonth'].forEach(id=>$('#'+id).classList.toggle('on',id==='r'+repMode[0].toUpperCase()+repMode.slice(1)));
+  txt();
+  const [from,to]=repRange();
+  const fd=d=>new Date(d+'T12:00:00').toLocaleDateString(locale(),{day:'numeric',month:'short'});
+  $('#rRange').textContent = from===to ? fd(from) : `${fd(from)} – ${fd(to)}`;
+  $('#rBody').innerHTML=`<p class="none">${t('loading')}</p>`;
+
+  try{
+    const r=await api('adminRange',{from,to});
+    const bks=[];
+    r.days.forEach(d=>d.bookings.forEach(b=>{ if(String(b.status).toLowerCase()!=='avbokad') bks.push(b); }));
+
+    const tot=r.totals;
+    let html=`<div class="rbig">
+      <div><b>${tot.count}</b><span>${t('rBookings')}</span></div>
+      <div><b class="m">${tot.revenue.toLocaleString('sv-SE')}</b><span>${t('rRevenue')} (kr)</span></div>
+      <div><b>${(tot.minutes/60).toFixed(1).replace('.0','')}</b><span>${t('rHours')}</span></div>
+    </div>`;
+
+    if(!bks.length){ $('#rBody').innerHTML=html+`<p class="none">${t('rNoData')}</p>`; return; }
+
+    // theo thợ
+    const per={};
+    bks.forEach(b=>{ const k=b.staffId; per[k]=per[k]||{n:0,kr:0,min:0,name:b.staff};
+      per[k].n++; per[k].kr+=b.price; per[k].min+=b.minutes; });
+    html+=`<h3 style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:0 0 8px 2px">${t('rPerStaff')}</h3><div class="rtab">`;
+    Object.keys(per).sort((a,b)=>per[b].kr-per[a].kr).forEach(k=>{
+      const p=per[k];
+      html+=`<div class="r"><span class="n"><i class="dot" style="background:${staffColor(k)}"></i>${p.name}</span>
+        <span class="c">${p.n} × · ${(p.min/60).toFixed(1).replace('.0','')} h</span>
+        <span class="v">${p.kr.toLocaleString('sv-SE')} kr</span></div>`;
+    });
+    html+=`<div class="r sum"><span class="n">${t('rTotal')}</span><span class="c"></span>
+      <span class="v">${tot.revenue.toLocaleString('sv-SE')} kr</span></div></div>`;
+
+    // theo dịch vụ
+    const svc={};
+    bks.forEach(b=>{ svc[b.service]=svc[b.service]||{n:0,kr:0}; svc[b.service].n++; svc[b.service].kr+=b.price; });
+    html+=`<h3 style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:16px 0 8px 2px">${t('tabSvc')}</h3><div class="rtab">`;
+    Object.keys(svc).sort((a,b)=>svc[b].kr-svc[a].kr).forEach(k=>{
+      html+=`<div class="r"><span class="n">${k}</span><span class="c">${svc[k].n} ×</span>
+        <span class="v">${svc[k].kr.toLocaleString('sv-SE')} kr</span></div>`;
+    });
+    html+='</div>';
+    $('#rBody').innerHTML=html;
+  }catch(e){ $('#rBody').innerHTML=`<p class="none">${e.message}</p>`; }
+}
 
 function err(sel,m){ const e=$(sel); e.textContent=m; e.hidden=false; e.scrollIntoView({block:'nearest'}); }
 </script>
