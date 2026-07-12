@@ -265,7 +265,7 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
 <!-- APP -->
 <div id="app" hidden>
   <div class="top"><div class="wrap">
-    <div class="logo" id="salonName">N.O.S Nails</div>
+    <div class="logo" id="salonName">N.O.S Nails <small style="opacity:.6;font-size:11px;font-weight:400">v2.4</small></div>
     <div class="langs"><button data-lang="sv" class="on">SV</button><button data-lang="vi">VI</button></div>
     <button class="btn ghost sm" id="logout" data-t="logout">Logga ut</button>
   </div></div>
@@ -362,6 +362,26 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
   </div>
 </div>
 
+<!-- MODAL: ÄNDRA SPÄRR -->
+<div class="mask" id="emask">
+  <div class="modal">
+    <h2 data-t="ebH">Ändra spärr</h2>
+    <div class="code" id="ebSub"></div>
+    <div class="err" id="ebErr" hidden></div>
+    <div class="field"><label data-t="lStaff">Tekniker</label><select id="ebStaff"></select></div>
+    <div class="two">
+      <div class="field"><label data-t="lStart">Start</label><input type="time" id="ebStart" step="900"></div>
+      <div class="field"><label data-t="lEnd">Slut</label><input type="time" id="ebEnd" step="900"></div>
+    </div>
+    <div class="field"><label data-t="lReason">Orsak</label><input type="text" id="ebReason"></div>
+    <div class="acts">
+      <button class="btn line" id="ebClose" data-t="close">Stäng</button>
+      <button class="btn danger" id="ebDel" data-t="ebDel">Ta bort</button>
+      <button class="btn" id="ebSave" data-t="save">Spara</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: RAPPORT -->
 <div class="mask" id="rmask">
   <div class="modal">
@@ -447,7 +467,7 @@ const T={
   rPerStaff:'Per tekniker',rTotal:'Totalt',rNoData:'Inga bokningar i perioden.',
   gridHint:'Dra bokningar och spärrar mellan tekniker/tider. Dra i kanten för att ändra längd. Dubbelklick tar bort en spärr.',
   qbLabel:'Spärra istället:',qbLunch:'🍽️ Lunch 60',qbPaus:'☕ Paus 30',qbMore:'🔒 Annat…',
-  lunchWord:'Lunch',pausWord:'Paus',
+  lunchWord:'Lunch',pausWord:'Paus',ebH:'Ändra spärr',ebDel:'Ta bort',
   freeNow:'Ledig nu',nextFree:'Nästa',fullDay:'Fullbokad',closedDay:'Stängt denna dag.',moveAsk:'Flytta bokningen?',
   svcNote:'Ändringar syns direkt på bokningssidan.',newSvc:'+ Ny behandling',svcNew:'Ny behandling',svcEdit:'Ändra behandling',
   svcSub:'Namnet visas för kunden. Priset i kronor.',svcNameSv:'Namn (svenska)',svcNameEn:'Namn (engelska)',
@@ -470,7 +490,7 @@ const T={
   rPerStaff:'Theo thợ',rTotal:'Tổng cộng',rNoData:'Kỳ này chưa có khách.',
   gridHint:'Kéo lịch khách và giờ nghỉ sang thợ/giờ khác. Kéo mép trên–dưới để co giãn giờ nghỉ. Bấm đúp để bỏ khoá.',
   qbLabel:'Hoặc khoá giờ:',qbLunch:'🍽️ Nghỉ trưa 60',qbPaus:'☕ Giải lao 30',qbMore:'🔒 Khác…',
-  lunchWord:'Nghỉ trưa',pausWord:'Giải lao',
+  lunchWord:'Nghỉ trưa',pausWord:'Giải lao',ebH:'Sửa giờ khoá',ebDel:'Xoá',
   freeNow:'Đang rảnh',nextFree:'Rảnh lúc',fullDay:'Kín cả ngày',closedDay:'Ngày này tiệm nghỉ.',moveAsk:'Chuyển lịch này?',
   svcNote:'Sửa xong hiện ngay trên trang đặt lịch của khách.',newSvc:'+ Thêm dịch vụ',svcNew:'Thêm dịch vụ',svcEdit:'Sửa dịch vụ',
   svcSub:'Tên hiện cho khách thấy. Giá tính bằng kronor.',svcNameSv:'Tên (tiếng Thụy Điển)',svcNameEn:'Tên (tiếng Anh)',
@@ -810,6 +830,7 @@ function paintGrid(){
       e.className='ev blk'; e.style.top=top+'px'; e.style.height=ht+'px';
       e.innerHTML=`<b>${b.reason||'Spärrad'}</b><span>${b.start}–${b.end}</span>`;
       e.ondblclick=()=>delBlock(b.id);
+      e.addEventListener('click',ev=>{ if(!blkDragged) openBlockEdit(b); });
       if(!whole){                       // khoá cả tiệm thì không kéo trong 1 cột
         e.appendChild(mkHandle('top'));
         e.appendChild(mkHandle('bot'));
@@ -909,6 +930,38 @@ function makeResizable(el,b,open,close,step){
   });
 }
 
+let blkDragged=false;
+let editBlk=null;
+
+function openBlockEdit(b){
+  editBlk=b; fillSelects(); txt();
+  $('#ebErr').hidden=true;
+  const st=$('#ebStaff'); st.innerHTML='';
+  const all=document.createElement('option'); all.value='ALLA'; all.textContent=t('allStaff'); st.appendChild(all);
+  cfg.staff.forEach(x=>{ const o=document.createElement('option'); o.value=x.id; o.textContent=x.name; st.appendChild(o); });
+  st.value=b.staffId;
+  $('#ebSub').textContent=`${b.date} · ${b.start}–${b.end}`;
+  $('#ebStart').value=b.start; $('#ebEnd').value=b.end; $('#ebReason').value=b.reason||'';
+  $('#emask').classList.add('on');
+}
+$('#ebClose').onclick=()=>$('#emask').classList.remove('on');
+$('#emask').onclick=e=>{ if(e.target===$('#emask')) $('#emask').classList.remove('on'); };
+$('#ebSave').onclick=async()=>{
+  if(!editBlk) return;
+  const btn=$('#ebSave'), old=btn.textContent; btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  try{
+    await api('adminBlockUpdate',{id:editBlk.id,staffId:$('#ebStaff').value,date:editBlk.date,
+      start:$('#ebStart').value,end:$('#ebEnd').value,reason:$('#ebReason').value.trim()});
+    $('#emask').classList.remove('on'); await load();
+  }catch(e){ err('#ebErr',e.message); }
+  finally{ btn.disabled=false; btn.textContent=old; }
+};
+$('#ebDel').onclick=async()=>{
+  if(!editBlk||!confirm(t('confirmDelBlock'))) return;
+  try{ await api('adminBlockDelete',{id:editBlk.id}); $('#emask').classList.remove('on'); await load(); }
+  catch(e){ err('#ebErr',e.message); }
+};
+
 function makeBlockDraggable(el,b){
   let startX,startY,moved=false,lastCell=null;
   el.addEventListener('pointerdown',e=>{
@@ -918,7 +971,7 @@ function makeBlockDraggable(el,b){
     el.setPointerCapture(e.pointerId);
 
     const move=ev=>{
-      if(!moved && (Math.abs(ev.clientX-startX)>6||Math.abs(ev.clientY-startY)>6)){ moved=true; el.classList.add('drag'); }
+      if(!moved && (Math.abs(ev.clientX-startX)>5||Math.abs(ev.clientY-startY)>5)){ moved=true; blkDragged=true; el.classList.add('drag'); }
       if(!moved) return;
       el.style.transform=`translate(${ev.clientX-startX}px,${ev.clientY-startY}px)`;
       el.style.pointerEvents='none';
@@ -933,7 +986,8 @@ function makeBlockDraggable(el,b){
       el.removeEventListener('pointerup',up);
       el.classList.remove('drag'); el.style.transform='';
       if(lastCell) lastCell.classList.remove('drop');
-      if(!moved) return;
+      if(!moved){ blkDragged=false; return; }
+      setTimeout(()=>{ blkDragged=false; },60);
 
       el.style.pointerEvents='none';
       const tg=document.elementFromPoint(ev.clientX,ev.clientY);
