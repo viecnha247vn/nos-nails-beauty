@@ -159,6 +159,7 @@ h2{font-size:17px;font-weight:700;margin:22px 0 10px}
 .clegend i{width:7px;height:7px;border-radius:50%;font-style:normal;margin-left:6px}
 .clegend i.ok{background:var(--teal);margin-left:0}
 .clegend i.no{background:#D8D3D1}
+.chorizon{margin-top:6px;font-size:12px;color:var(--grey)}
 .datewrap{position:relative;margin-bottom:4px}
 .dates{display:flex;gap:8px;overflow-x:auto;padding:4px 0 10px;scrollbar-width:none}
 .dates::-webkit-scrollbar{display:none}
@@ -331,6 +332,7 @@ footer a{color:var(--brick)}
     <div class="cgrid" id="cDays"></div>
     <p class="clegend"><i class="ok"></i><span data-t="legFree">Lediga tider</span>
        <i class="no"></i><span data-t="legFull">Fullbokat / stängt</span></p>
+    <p class="chorizon" id="cHorizon"></p>
   </div>
 </div>
 
@@ -348,7 +350,7 @@ const T={
   fName:'Namn',fPhone:'Telefon',fMail:'E-post',fNote:'Meddelande (valfritt)',
   next:'Nästa',back:'Tillbaka',confirm:'Bekräfta bokning',pickSvc:'Välj en behandling',
   pick:'Välj',picked:'Vald',anyStaff:'Alla',open:'Öppet nu',closed:'Stängt nu',callUs:'Ring oss',allHours:'Alla öppettider ▾',hideHours:'Dölj ▴',shut:'Stängt',todayIs:'Idag',
-  today:'Idag',tomorrow:'Imorgon',firstFree:'⚡ Första lediga',calendar:'📅 Välj datum',legFree:'Lediga tider',legFull:'Fullbokat / stängt',
+  today:'Idag',tomorrow:'Imorgon',firstFree:'⚡ Första lediga',calendar:'📅 Välj datum',legFree:'Lediga tider',legFull:'Fullbokat / stängt',bookUntil:'Bokningsbart t.o.m.',
   morning:'Förmiddag',afternoon:'Eftermiddag',evening:'Kväll',
   tapHint:'Tryck på en tid så går du direkt vidare.',
   noTimes:'Inga lediga tider den dagen.',shutDay:'Stängt den dagen.',noneAtAll:'Inga lediga tider de närmaste veckorna. Ring oss gärna.',
@@ -361,7 +363,7 @@ const T={
   fName:'Name',fPhone:'Phone',fMail:'Email',fNote:'Message (optional)',
   next:'Next',back:'Back',confirm:'Confirm booking',pickSvc:'Choose a treatment',
   pick:'Select',picked:'Selected',anyStaff:'Anyone',open:'Open now',closed:'Closed now',callUs:'Call us',allHours:'All opening hours ▾',hideHours:'Hide ▴',shut:'Closed',todayIs:'Today',
-  today:'Today',tomorrow:'Tomorrow',firstFree:'⚡ First available',calendar:'📅 Pick a date',legFree:'Free times',legFull:'Fully booked / closed',
+  today:'Today',tomorrow:'Tomorrow',firstFree:'⚡ First available',calendar:'📅 Pick a date',legFree:'Free times',legFull:'Fully booked / closed',bookUntil:'Bookable until',
   morning:'Morning',afternoon:'Afternoon',evening:'Evening',
   tapHint:'Tap a time and you go straight on.',
   noTimes:'No free times that day.',shutDay:'Closed that day.',noneAtAll:'No free times in the coming weeks. Please call us.',
@@ -374,7 +376,7 @@ const T={
   fName:'Họ tên',fPhone:'Điện thoại',fMail:'Email',fNote:'Ghi chú (không bắt buộc)',
   next:'Tiếp',back:'Quay lại',confirm:'Xác nhận đặt lịch',pickSvc:'Chọn dịch vụ',
   pick:'Chọn',picked:'Đã chọn',anyStaff:'Thợ nào cũng được',open:'Đang mở cửa',closed:'Đang đóng cửa',callUs:'Gọi tiệm',allHours:'Xem cả tuần ▾',hideHours:'Thu gọn ▴',shut:'Nghỉ',todayIs:'Hôm nay',
-  today:'Hôm nay',tomorrow:'Ngày mai',firstFree:'⚡ Giờ sớm nhất',calendar:'📅 Chọn ngày',legFree:'Còn chỗ',legFull:'Kín / nghỉ',
+  today:'Hôm nay',tomorrow:'Ngày mai',firstFree:'⚡ Giờ sớm nhất',calendar:'📅 Chọn ngày',legFree:'Còn chỗ',legFull:'Kín / nghỉ',bookUntil:'Đặt được tới',
   morning:'Buổi sáng',afternoon:'Buổi chiều',evening:'Buổi tối',
   tapHint:'Bấm vào giờ là qua bước tiếp theo luôn.',
   noTimes:'Ngày này hết giờ trống.',shutDay:'Ngày này tiệm nghỉ.',noneAtAll:'Vài tuần tới đã kín. Anh/chị gọi tiệm giúp nhé.',
@@ -654,6 +656,9 @@ async function loadCal(){
     }catch(e){ $('#cDays').innerHTML=`<span style="grid-column:span 7;color:var(--grey);text-align:center">${e.message}</span>`; return; }
   }
   calDays=data;
+  $('#cHorizon').textContent = horizon
+    ? `${t('bookUntil')} ${new Date(horizon+'T12:00:00').toLocaleDateString(loc(),{day:'numeric',month:'long',year:'numeric'})}`
+    : '';
 
   const box=$('#cDays'); box.innerHTML='';
   const lead=(first.getDay()+6)%7;             // tuần bắt đầu từ thứ 2
