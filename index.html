@@ -502,17 +502,21 @@ document.querySelectorAll('.langs button').forEach(b=>b.onclick=()=>{
 })();
 
 /* ---------- galleri: 10 stilar (vektor, ingen upphovsrätt) ---------- */
+const PX =id=>`https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=600&h=750&fit=crop`;
+const PXL=id=>`https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=1000`;
+
+/* 10 riktiga bilder – Pexels, fri kommersiell licens, ingen attribution krävs */
 const DESIGNS=[
-  {k:'french',   name:{sv:'Fransk klassisk',en:'Classic French',vi:'French cổ điển'},   base:'#F3DDD6',tip:'#FFFFFF',match:'gel'},
-  {k:'nude',     name:{sv:'Nude glans',     en:'Glossy nude',   vi:'Nude bóng'},        base:'#DFC0AE',match:'manik'},
-  {k:'red',      name:{sv:'Röd lack',       en:'Red lacquer',   vi:'Đỏ lacquer'},       base:'#C0231F',match:'gel'},
-  {k:'burgundy', name:{sv:'Vinröd matt',    en:'Matte burgundy',vi:'Đỏ rượu lì'},       base:'#6E2C35',matte:1,match:'gel'},
-  {k:'ombre',    name:{sv:'Ombré rosa',     en:'Pink ombré',    vi:'Ombré hồng'},       base:'#E9B9C6',base2:'#FFF3F5',match:'gel'},
-  {k:'glitter',  name:{sv:'Glitter guld',   en:'Gold glitter',  vi:'Nhũ vàng'},         base:'#C99B4E',glit:1,match:'gel'},
-  {k:'chrome',   name:{sv:'Krom silver',    en:'Chrome',        vi:'Chrome bạc'},       base:'#B9BFC6',chrome:1,match:'gel'},
-  {k:'marble',   name:{sv:'Marmor',         en:'Marble',        vi:'Vân đá'},           base:'#F1EDEA',marble:1,match:'akryl'},
-  {k:'almond',   name:{sv:'Lång mandelform',en:'Long almond',   vi:'Móng dài almond'},  base:'#D89AA4',long:1,match:'akryl'},
-  {k:'pedi',     name:{sv:'Pedikyr korall', en:'Coral pedicure',vi:'Chân màu san hô'},  base:'#E86A54',match:'pedi'}
+  {id:34871614, name:{sv:'Röd lack',        en:'Red lacquer',      vi:'Đỏ lacquer'},      match:'gel'},
+  {id:34871560, name:{sv:'Rött & vitt',     en:'Red & white',      vi:'Đỏ trắng'},        match:'gel'},
+  {id:35491156, name:{sv:'Nude & glitter',  en:'Nude & glitter',   vi:'Nude nhũ'},        match:'manik'},
+  {id:34835286, name:{sv:'Rosa glitter',    en:'Pink glitter',     vi:'Hồng nhũ'},        match:'gel'},
+  {id:17471377, name:{sv:'Ombré blommor',   en:'Floral ombré',     vi:'Ombré hoa'},       match:'gel'},
+  {id:34835303, name:{sv:'Leopard & svart', en:'Leopard & black',  vi:'Da beo đen'},      match:'akryl'},
+  {id:34971940, name:{sv:'Turkos design',   en:'Turquoise design', vi:'Xanh ngọc'},       match:'akryl'},
+  {id:34885842, name:{sv:'Blommigt rosa',   en:'Floral pink',      vi:'Hồng hoa'},        match:'gel'},
+  {id:34885849, name:{sv:'Korall',          en:'Coral',            vi:'San hô'},          match:'pedi'},
+  {id:34671620, name:{sv:'Klassisk manikyr',en:'Classic manicure', vi:'Manicure cơ bản'}, match:'manik'}
 ];
 
 function nailSVG(d,big){
@@ -558,7 +562,7 @@ function drawGallery(){
   const photos=(cfg.gallery||[]).filter(p=>p.url);
   gItems = photos.length
     ? photos.map(p=>({photo:p.url, title:p.title||'', svc:null}))
-    : DESIGNS.map(d=>({design:d, title:d.name[lang]||d.name.sv, svc:matchSvc(d.match)}));
+    : DESIGNS.map(d=>({photo:PX(d.id), title:d.name[lang]||d.name.sv, svc:matchSvc(d.match)}));
 
   $('#gal').hidden=false;
   const row=$('#galRow'); row.innerHTML='';
@@ -588,7 +592,9 @@ function matchSvc(key){
 
 function openLb(i){
   gIdx=i; const it=gItems[i];
-  $('#lbBox').innerHTML = it.photo ? `<img src="${it.photo}" alt="">` : nailSVG(it.design,true);
+  const big = it.photo && it.photo.includes('images.pexels.com')
+    ? it.photo.replace(/w=600&h=750&fit=crop/,'w=1000') : it.photo;
+  $('#lbBox').innerHTML = it.photo ? `<img src="${big}" alt="">` : nailSVG(it.design,true);
   $('#lbCap').textContent=it.title;
   $('#lbSub').textContent=it.svc? `${it.svc.name[lang]||it.svc.name.sv} · ${it.svc.price} ${t('kr')}` : '';
   $('#lbBook').hidden=!it.svc;
