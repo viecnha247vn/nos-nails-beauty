@@ -57,6 +57,38 @@ select{-webkit-appearance:none;appearance:none;
 .sum span{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
 .sum div.rev b{color:var(--lacquer)}
 
+/* DAGSVY: schema-rutnät 15 min */
+.grid{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:80px}
+.ghead{display:grid;position:sticky;top:56px;z-index:12;background:#fff;border-bottom:1px solid var(--line)}
+.ghead .gh{padding:9px 8px;text-align:center;border-left:1px solid var(--line)}
+.ghead .gh:first-child{border-left:0}
+.ghead .gh b{display:flex;align-items:center;justify-content:center;gap:6px;font-size:14px}
+.ghead .gh small{display:block;font-size:11px;margin-top:2px;font-weight:600}
+.ghead .gh small.free{color:#2E7D5B}
+.ghead .gh small.busy{color:var(--muted)}
+.gbody{display:grid;position:relative;overflow-x:auto}
+.gtime{border-right:1px solid var(--line);background:#FBF8F7}
+.gtime div{height:22px;font-size:10px;color:var(--muted);text-align:right;padding-right:6px;
+  border-top:1px solid transparent;line-height:1}
+.gtime div.hour{border-top:1px solid var(--line);font-weight:700;color:var(--ink);font-size:11px}
+.gcol{position:relative;border-left:1px solid var(--line)}
+.cell{height:22px;border-top:1px dashed #F0EBE9;cursor:pointer}
+.cell.hour{border-top:1px solid var(--line)}
+.cell:hover{background:#FBF3F1}
+.cell.drop{background:#E7F3EF;box-shadow:inset 0 0 0 2px #2E7D5B}
+.ev{position:absolute;left:3px;right:3px;border-radius:7px;padding:4px 6px;overflow:hidden;cursor:grab;
+  color:#fff;font-size:11px;line-height:1.25;box-shadow:0 2px 6px rgba(42,31,29,.18);touch-action:none;
+  border:1px solid rgba(255,255,255,.35)}
+.ev:active{cursor:grabbing}
+.ev b{display:block;font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev span{opacity:.9;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev.avbokad{opacity:.4}
+.ev.blk{background:repeating-linear-gradient(45deg,#9A8C87,#9A8C87 5px,#8A7A76 5px,#8A7A76 10px)!important;cursor:default}
+.ev.drag{opacity:.55;box-shadow:0 8px 20px rgba(42,31,29,.35);z-index:20}
+.nowline{position:absolute;left:0;right:0;height:2px;background:#D63B2F;z-index:9;pointer-events:none}
+.nowline:before{content:"";position:absolute;left:-4px;top:-3px;width:8px;height:8px;border-radius:50%;background:#D63B2F}
+.ghint{font-size:12px;color:var(--muted);margin:0 0 10px 2px}
+
 /* DAGSVY: lista */
 .list{display:flex;flex-direction:column;gap:8px;padding-bottom:80px}
 .li{display:flex;align-items:stretch;gap:0;background:#fff;border:1px solid var(--line);border-radius:12px;
@@ -210,7 +242,8 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
       <button class="btn line sm" id="todayBtn" data-t="today">Idag</button>
       <input type="date" id="datePick" style="width:auto">
       <div class="vtabs" id="vtabs">
-        <button id="vList" class="on" data-t="vList">Lista</button>
+        <button id="vGrid" class="on" data-t="vGrid">Schema</button>
+        <button id="vList" data-t="vList">Lista</button>
         <button id="vCols" data-t="vCols">Per tekniker</button>
       </div>
     </div>
@@ -221,7 +254,9 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
       <div><b id="sTime">0 h</b><span data-t="sHours">Bokad tid</span></div>
     </div>
 
-    <div class="list" id="list"></div>
+    <p class="ghint" id="gHint" data-t="gridHint">Dra en bokning till en annan tekniker eller tid. Tryck på en tom ruta för att boka.</p>
+    <div class="grid" id="grid"></div>
+    <div class="list" id="list" hidden></div>
     <div class="cols" id="cols" hidden></div>
     <div class="week" id="week" hidden></div>
 
@@ -350,7 +385,9 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbxAgRKP5UWX9V8O4OqlJpAQ
 
 const T={
  sv:{loginH:'Adminpanel',loginP:'Ange adminnyckeln från fliken Settings.',loginB:'Logga in',logout:'Logga ut',
-  tabDay:'Dag',tabWeek:'Vecka',tabSvc:'Tjänster',vList:'Lista',vCols:'Per tekniker',phoneCall:'Ring',
+  tabDay:'Dag',tabWeek:'Vecka',tabSvc:'Tjänster',vGrid:'Schema',vList:'Lista',vCols:'Per tekniker',phoneCall:'Ring',
+  gridHint:'Dra en bokning till en annan tekniker eller tid. Tryck på en tom ruta för att boka.',
+  freeNow:'Ledig nu',nextFree:'Nästa',fullDay:'Fullbokad',closedDay:'Stängt denna dag.',moveAsk:'Flytta bokningen?',
   svcNote:'Ändringar syns direkt på bokningssidan.',newSvc:'+ Ny behandling',svcNew:'Ny behandling',svcEdit:'Ändra behandling',
   svcSub:'Namnet visas för kunden. Priset i kronor.',svcNameSv:'Namn (svenska)',svcNameEn:'Namn (engelska)',
   svcNameVi:'Namn (vietnamesiska)',svcMin:'Längd (minuter)',svcPrice:'Pris (kr)',svcCat:'Kategori',
@@ -367,7 +404,9 @@ const T={
   pickTime:'Välj en tid.',needName:'Ange kundens namn.',anyStaff:'Först ledig',
   confirmCancel:'Avboka den här tiden?',confirmDelBlock:'Ta bort spärren?',week:'Vecka'},
  vi:{loginH:'Trang quản lý',loginP:'Nhập adminKey trong tab Settings.',loginB:'Đăng nhập',logout:'Thoát',
-  tabDay:'Ngày',tabWeek:'Tuần',tabSvc:'Dịch vụ',vList:'Danh sách',vCols:'Theo thợ',phoneCall:'Gọi',
+  tabDay:'Ngày',tabWeek:'Tuần',tabSvc:'Dịch vụ',vGrid:'Lịch',vList:'Danh sách',vCols:'Theo thợ',phoneCall:'Gọi',
+  gridHint:'Kéo lịch khách sang thợ khác hoặc giờ khác. Bấm ô trống để thêm lịch.',
+  freeNow:'Đang rảnh',nextFree:'Rảnh lúc',fullDay:'Kín cả ngày',closedDay:'Ngày này tiệm nghỉ.',moveAsk:'Chuyển lịch này?',
   svcNote:'Sửa xong hiện ngay trên trang đặt lịch của khách.',newSvc:'+ Thêm dịch vụ',svcNew:'Thêm dịch vụ',svcEdit:'Sửa dịch vụ',
   svcSub:'Tên hiện cho khách thấy. Giá tính bằng kronor.',svcNameSv:'Tên (tiếng Thụy Điển)',svcNameEn:'Tên (tiếng Anh)',
   svcNameVi:'Tên (tiếng Việt)',svcMin:'Thời lượng (phút)',svcPrice:'Giá (kr)',svcCat:'Nhóm',
@@ -388,7 +427,7 @@ const WD ={sv:['Söndag','Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag
 const WDS={sv:['Sön','Mån','Tis','Ons','Tor','Fre','Lör'],vi:['CN','T2','T3','T4','T5','T6','T7']};
 const SWATCH=['#8C3A31','#C08457','#8FAE9B','#6E2C25','#B5674F','#3E2B27'];
 
-let lang='sv', key='', cfg=null, view='day', dayMode='list', svcData=null, editSvc=null, date=todayISO(), day=null, weekData=null, edit=null;
+let lang='sv', key='', cfg=null, view='day', dayMode='grid', svcData=null, editSvc=null, date=todayISO(), day=null, weekData=null, edit=null;
 
 const $=s=>document.querySelector(s);
 const t=k=>T[lang][k]||T.sv[k]||k;
@@ -451,6 +490,7 @@ function syncTabs(){
   $('#cols').hidden = !(view==='day' && dayMode==='cols');
   $('#week').hidden = view!=='week';
 }
+$('#vGrid').onclick=()=>{ dayMode='grid'; paint(); };
 $('#vList').onclick=()=>{ dayMode='list'; paint(); };
 $('#vCols').onclick=()=>{ dayMode='cols'; paint(); };
 
@@ -566,6 +606,7 @@ function paintDay(){
   $('#tTitle').textContent=d.toLocaleDateString(locale(),{day:'numeric',month:'long'});
   $('#tSub').textContent=WD[lang][d.getDay()];
   setSum(day.totals);
+  paintGrid();
   paintList();
 
   const box=$('#cols'); box.innerHTML='';
@@ -606,6 +647,179 @@ function paintDay(){
       }
     });
     box.appendChild(col);
+  });
+}
+
+/* ================= SCHEMA 15 MIN + DRA & SLÄPP ================= */
+const ROW=22;                       // px cho mỗi ô
+const toMin=t=>{const[a,b]=String(t).split(':').map(Number);return a*60+b;};
+const toHM=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+
+function dayHours(){
+  const wd=new Date(day.date+'T12:00:00').getDay();
+  return (cfg.hours||[]).find(h=>h.weekday===wd) || null;
+}
+
+function paintGrid(){
+  const box=$('#grid'); box.innerHTML='';
+  const h=dayHours();
+  if(!h){ box.innerHTML=`<p class="none" style="padding:20px;text-align:center">${t('closedDay')}</p>`; return; }
+
+  const step=cfg.slotStep||15, open=toMin(h.open), close=toMin(h.close);
+  const rows=Math.ceil((close-open)/step);
+  const staff=cfg.staff;
+  const cols=`58px repeat(${staff.length},minmax(120px,1fr))`;
+
+  // ---- đầu cột: tên thợ + trạng thái rảnh ----
+  const head=document.createElement('div'); head.className='ghead'; head.style.gridTemplateColumns=cols;
+  head.appendChild(document.createElement('div'));
+  const nowMin = day.date===todayISO() ? new Date().getHours()*60+new Date().getMinutes() : -1;
+
+  staff.forEach((st,i)=>{
+    const busy=busyOf(st.id);
+    const isBusyNow = nowMin>=0 && busy.some(iv=>nowMin>=iv[0]&&nowMin<iv[1]);
+    let nextFree='';
+    if(nowMin>=0 && isBusyNow){
+      for(let m=Math.ceil(nowMin/step)*step;m<close;m+=step){
+        if(!busy.some(iv=>m>=iv[0]&&m<iv[1])){ nextFree=toHM(m); break; }
+      }
+    }
+    const freeSlots=countFree(st.id,open,close,step);
+    const gh=document.createElement('div'); gh.className='gh';
+    let sub;
+    if(freeSlots===0) sub=`<small class="busy">${t('fullDay')}</small>`;
+    else if(nowMin<0) sub=`<small class="free">${freeSlots} × ${step} min</small>`;
+    else if(!isBusyNow) sub=`<small class="free">● ${t('freeNow')}</small>`;
+    else sub=`<small class="busy">${t('nextFree')} ${nextFree||'–'}</small>`;
+    gh.innerHTML=`<b><i class="dot" style="background:${staffColor(st.id)}"></i>${st.name}</b>${sub}`;
+    head.appendChild(gh);
+  });
+  box.appendChild(head);
+
+  // ---- thân lưới ----
+  const body=document.createElement('div'); body.className='gbody'; body.style.gridTemplateColumns=cols;
+
+  const times=document.createElement('div'); times.className='gtime';
+  for(let r=0;r<rows;r++){
+    const m=open+r*step;
+    const d=document.createElement('div');
+    if(m%60===0){ d.className='hour'; d.textContent=toHM(m); }
+    else if(m%30===0){ d.textContent=toHM(m); d.style.opacity='.55'; }
+    times.appendChild(d);
+  }
+  body.appendChild(times);
+
+  staff.forEach(st=>{
+    const col=document.createElement('div'); col.className='gcol'; col.dataset.staff=st.id;
+    for(let r=0;r<rows;r++){
+      const m=open+r*step;
+      const c=document.createElement('div');
+      c.className='cell'+(m%60===0?' hour':'');
+      c.dataset.time=toHM(m); c.dataset.staff=st.id;
+      c.onclick=()=>openBooking(null,{staffId:st.id,time:toHM(m),date:day.date});
+      col.appendChild(c);
+    }
+    // lịch khách
+    day.bookings.filter(b=>b.staffId===st.id).forEach(b=>{
+      const top=(toMin(b.time)-open)/step*ROW, ht=Math.max(ROW,(toMin(b.end)-toMin(b.time))/step*ROW-2);
+      const e=document.createElement('div');
+      e.className='ev'+(String(b.status).toLowerCase()==='avbokad'?' avbokad':'');
+      e.style.top=top+'px'; e.style.height=ht+'px'; e.style.background=staffColor(st.id);
+      e.innerHTML=`<b>${b.time} ${b.customer||''}</b><span>${b.service} · ${b.price} kr</span>`;
+      e.dataset.code=b.code;
+      e.onclick=()=>{ if(!dragged) openBooking(b); };
+      makeDraggable(e,b);
+      col.appendChild(e);
+    });
+    // giờ khoá
+    day.blocks.filter(b=>b.staffId===st.id||b.staffId.toUpperCase()==='ALLA').forEach(b=>{
+      const top=(Math.max(toMin(b.start),open)-open)/step*ROW;
+      const ht=Math.max(ROW,(Math.min(toMin(b.end),close)-Math.max(toMin(b.start),open))/step*ROW-2);
+      const e=document.createElement('div');
+      e.className='ev blk'; e.style.top=top+'px'; e.style.height=ht+'px';
+      e.innerHTML=`<b>${b.reason||'Spärrad'}</b><span>${b.start}–${b.end}</span>`;
+      e.ondblclick=()=>delBlock(b.id);
+      col.appendChild(e);
+    });
+    body.appendChild(col);
+  });
+
+  // vạch giờ hiện tại
+  if(nowMin>=open && nowMin<=close){
+    const line=document.createElement('div'); line.className='nowline';
+    line.style.top=((nowMin-open)/step*ROW)+'px';
+    body.appendChild(line);
+  }
+  box.appendChild(body);
+}
+
+function busyOf(staffId){
+  const out=[];
+  day.bookings.filter(b=>b.staffId===staffId && String(b.status).toLowerCase()!=='avbokad')
+    .forEach(b=>out.push([toMin(b.time),toMin(b.end)]));
+  day.blocks.filter(b=>b.staffId===staffId||b.staffId.toUpperCase()==='ALLA')
+    .forEach(b=>out.push([toMin(b.start),toMin(b.end)]));
+  return out;
+}
+function countFree(staffId,open,close,step){
+  const busy=busyOf(staffId); let n=0;
+  for(let m=open;m<close;m+=step) if(!busy.some(iv=>m>=iv[0]&&m<iv[1])) n++;
+  return n;
+}
+
+/* ---------- kéo & thả (chuột + cảm ứng) ---------- */
+let dragged=null;
+function makeDraggable(el,b){
+  if(String(b.status).toLowerCase()==='avbokad') return;
+  let startX,startY,moved=false,lastCell=null;
+
+  el.addEventListener('pointerdown',e=>{
+    if(e.button>0) return;
+    startX=e.clientX; startY=e.clientY; moved=false;
+    el.setPointerCapture(e.pointerId);
+
+    const move=ev=>{
+      if(!moved && (Math.abs(ev.clientX-startX)>6||Math.abs(ev.clientY-startY)>6)){
+        moved=true; dragged=b; el.classList.add('drag');
+      }
+      if(!moved) return;
+      el.style.transform=`translate(${ev.clientX-startX}px,${ev.clientY-startY}px)`;
+      el.style.pointerEvents='none';
+      const target=document.elementFromPoint(ev.clientX,ev.clientY);
+      const cell=target && target.closest ? target.closest('.cell') : null;
+      el.style.pointerEvents='';
+      if(lastCell&&lastCell!==cell) lastCell.classList.remove('drop');
+      if(cell){ cell.classList.add('drop'); lastCell=cell; }
+    };
+
+    const up=async ev=>{
+      el.removeEventListener('pointermove',move);
+      el.removeEventListener('pointerup',up);
+      el.classList.remove('drag'); el.style.transform='';
+      if(lastCell) lastCell.classList.remove('drop');
+      if(!moved){ dragged=null; return; }
+
+      el.style.pointerEvents='none';
+      const target=document.elementFromPoint(ev.clientX,ev.clientY);
+      const cell=target && target.closest ? target.closest('.cell') : null;
+      el.style.pointerEvents='';
+      setTimeout(()=>{ dragged=null; },50);
+
+      if(!cell) return;
+      const newStaff=cell.dataset.staff, newTime=cell.dataset.time;
+      if(newStaff===b.staffId && newTime===b.time) return;
+
+      el.style.opacity='.4';
+      try{
+        await api('adminEdit',{code:b.code,date:day.date,time:newTime,serviceId:b.serviceId,staffId:newStaff});
+        await load();
+      }catch(err2){
+        alert(err2.message);
+        paintGrid();
+      }
+    };
+    el.addEventListener('pointermove',move);
+    el.addEventListener('pointerup',up);
   });
 }
 
@@ -719,7 +933,7 @@ function fillSelects(){
   cfg.staff.forEach(s=>{ const o=document.createElement('option'); o.value=s.id; o.textContent=s.name; bs.appendChild(o); });
 }
 
-function openBooking(b){
+function openBooking(b,preset){
   edit=b; fillSelects(); txt();
   $('#mErr').hidden=true; $('#mForce').checked=false;
   $('#mTitle').textContent = b? t('editTitle') : t('newTitle');
@@ -727,9 +941,9 @@ function openBooking(b){
   $('#mCancel').hidden     = !b;
   $('#statusWrap').hidden  = !b;
   $('#mSvc').value   = b? b.serviceId : cfg.services[0].id;
-  $('#mStaff').value = b? b.staffId : 'any';
-  $('#mDate').value  = b? b.date : (view==='day'? date : todayISO());
-  $('#mTime').value  = b? b.time : '';
+  $('#mStaff').value = b? b.staffId : (preset? preset.staffId : 'any');
+  $('#mDate').value  = b? b.date : (preset? preset.date : (view==='day'? date : todayISO()));
+  $('#mTime').value  = b? b.time : (preset? preset.time : '');
   $('#mName').value  = b? (b.customer||'') : '';
   $('#mPhone').value = b? (b.phone||'') : '';
   $('#mMail').value  = b? (b.email||'') : '';
