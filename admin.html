@@ -96,6 +96,12 @@ select{-webkit-appearance:none;appearance:none;
 .ev.drag{opacity:.55;box-shadow:0 8px 20px rgba(42,31,29,.35);z-index:20}
 .nowline{position:absolute;left:0;right:0;height:2px;background:#D63B2F;z-index:9;pointer-events:none;margin-top:9px}
 .nowline:before{content:"";position:absolute;left:-4px;top:-3px;width:8px;height:8px;border-radius:50%;background:#D63B2F}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);z-index:60;
+  background:var(--ink);color:#fff;font-size:13px;font-weight:600;padding:9px 16px;border-radius:99px;
+  opacity:0;transition:.18s;pointer-events:none;box-shadow:0 8px 20px rgba(42,31,29,.3)}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.bad{background:var(--brick)}
+.ev.saving{opacity:.6}
 .ghint{font-size:12px;color:var(--muted);margin:0 0 10px 2px}
 
 /* DAGSVY: lista */
@@ -266,7 +272,7 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
 <!-- APP -->
 <div id="app" hidden>
   <div class="top"><div class="wrap">
-    <div class="logo" id="salonName">N.O.S Nails <small style="opacity:.6;font-size:11px;font-weight:400">v2.5</small></div>
+    <div class="logo" id="salonName">N.O.S Nails <small style="opacity:.6;font-size:11px;font-weight:400">v2.6</small></div>
     <div class="langs"><button data-lang="sv" class="on">SV</button><button data-lang="vi">VI</button></div>
     <button class="btn ghost sm" id="logout" data-t="logout">Logga ut</button>
   </div></div>
@@ -364,6 +370,8 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
 </div>
 
 <!-- MODAL: ÄNDRA SPÄRR -->
+<div class="toast" id="toast"></div>
+
 <div class="mask" id="emask">
   <div class="modal">
     <h2 data-t="ebH">Ändra spärr</h2>
@@ -468,7 +476,7 @@ const T={
   rPerStaff:'Per tekniker',rTotal:'Totalt',rNoData:'Inga bokningar i perioden.',
   gridHint:'Dra bokningar och spärrar mellan tekniker/tider. Dra i kanten för att ändra längd. Dubbelklick tar bort en spärr.',
   qbLabel:'Spärra istället:',qbLunch:'🍽️ Lunch 60',qbPaus:'☕ Paus 30',qbMore:'🔒 Annat…',
-  lunchWord:'Lunch',pausWord:'Paus',ebH:'Ändra spärr',ebDel:'Ta bort',
+  lunchWord:'Lunch',pausWord:'Paus',ebH:'Ändra spärr',ebDel:'Ta bort',saved:'Sparat ✓',
   freeNow:'Ledig nu',nextFree:'Nästa',fullDay:'Fullbokad',closedDay:'Stängt denna dag.',moveAsk:'Flytta bokningen?',
   svcNote:'Ändringar syns direkt på bokningssidan.',newSvc:'+ Ny behandling',svcNew:'Ny behandling',svcEdit:'Ändra behandling',
   svcSub:'Namnet visas för kunden. Priset i kronor.',svcNameSv:'Namn (svenska)',svcNameEn:'Namn (engelska)',
@@ -491,7 +499,7 @@ const T={
   rPerStaff:'Theo thợ',rTotal:'Tổng cộng',rNoData:'Kỳ này chưa có khách.',
   gridHint:'Kéo lịch khách và giờ nghỉ sang thợ/giờ khác. Kéo mép trên–dưới để co giãn giờ nghỉ. Bấm đúp để bỏ khoá.',
   qbLabel:'Hoặc khoá giờ:',qbLunch:'🍽️ Nghỉ trưa 60',qbPaus:'☕ Giải lao 30',qbMore:'🔒 Khác…',
-  lunchWord:'Nghỉ trưa',pausWord:'Giải lao',ebH:'Sửa giờ khoá',ebDel:'Xoá',
+  lunchWord:'Nghỉ trưa',pausWord:'Giải lao',ebH:'Sửa giờ khoá',ebDel:'Xoá',saved:'Đã lưu ✓',
   freeNow:'Đang rảnh',nextFree:'Rảnh lúc',fullDay:'Kín cả ngày',closedDay:'Ngày này tiệm nghỉ.',moveAsk:'Chuyển lịch này?',
   svcNote:'Sửa xong hiện ngay trên trang đặt lịch của khách.',newSvc:'+ Thêm dịch vụ',svcNew:'Thêm dịch vụ',svcEdit:'Sửa dịch vụ',
   svcSub:'Tên hiện cho khách thấy. Giá tính bằng kronor.',svcNameSv:'Tên (tiếng Thụy Điển)',svcNameEn:'Tên (tiếng Anh)',
@@ -920,16 +928,28 @@ function makeResizable(el,b,open,close,step){
         h.removeEventListener('pointerup',up);
         el.classList.remove('resizing'); tip.remove();
         if(ns===s0 && ne===e0) return;
+        const before=snap();
+        const x=day.blocks.find(o=>o.id===b.id);
+        if(x){ x.start=toHM(ns); x.end=toHM(ne); }
+        paintGrid();
         try{
           await api('adminBlockUpdate',{id:b.id,start:toHM(ns),end:toHM(ne)});
-          await load();
-        }catch(err2){ alert(err2.message); paintGrid(); }
+          toast(t('saved'));
+        }catch(err2){ day=before; paintGrid(); toast(err2.message,true); }
       };
       h.addEventListener('pointermove',move);
       h.addEventListener('pointerup',up);
     });
   });
 }
+
+let toastT=null;
+function toast(msg,bad){
+  const el=$('#toast'); el.textContent=msg;
+  el.classList.toggle('bad',!!bad); el.classList.add('on');
+  clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('on'),1600);
+}
+const snap=()=>JSON.parse(JSON.stringify(day));
 
 let dragged=false;
 let blkDragged=false;
@@ -1033,9 +1053,16 @@ function dragCore(el, opts){
 
       const hit=hitCell(ev.clientX,ev.clientY);
       if(!hit) return;
-      el.style.opacity='.45';
-      try{ await opts.onDrop(hit); await load(); }
-      catch(err2){ alert(err2.message); paintGrid(); }
+      const before=snap();
+      if(!opts.applyLocal(hit)) return;      // không đổi gì
+      paintGrid();                            // hiện ngay, không chờ server
+      try{
+        await opts.save(hit);
+        toast(t('saved'));
+      }catch(err2){
+        day=before; paintGrid();
+        toast(err2.message,true);
+      }
     };
 
     el.addEventListener('pointermove',move);
@@ -1046,19 +1073,32 @@ function dragCore(el, opts){
 
 function makeDraggable(el,b){
   if(String(b.status).toLowerCase()==='avbokad') return;
-  dragCore(el,{ onDrop: async hit=>{
-    if(hit.staffId===b.staffId && hit.time===b.time) return;
-    await api('adminEdit',{code:b.code,date:day.date,time:hit.time,serviceId:b.serviceId,staffId:hit.staffId});
-  }});
+  dragCore(el,{
+    applyLocal:hit=>{
+      if(hit.staffId===b.staffId && hit.time===b.time) return false;
+      const x=day.bookings.find(o=>o.code===b.code); if(!x) return false;
+      const st=cfg.staff.find(s2=>s2.id===hit.staffId);
+      x.staffId=hit.staffId; x.staff=st?st.name:x.staff;
+      x.time=hit.time; x.end=toHM(hit.min+x.minutes);
+      return true;
+    },
+    save:hit=>api('adminEdit',{code:b.code,date:day.date,time:hit.time,
+      serviceId:b.serviceId,staffId:hit.staffId})
+  });
 }
 
 function makeBlockDraggable(el,b){
-  dragCore(el,{ onDrop: async hit=>{
-    const dur=toMin(b.end)-toMin(b.start);
-    if(hit.staffId===b.staffId && hit.time===b.start) return;
-    await api('adminBlockUpdate',{id:b.id,staffId:hit.staffId,date:day.date,
-      start:hit.time,end:toHM(hit.min+dur)});
-  }});
+  const dur=toMin(b.end)-toMin(b.start);
+  dragCore(el,{
+    applyLocal:hit=>{
+      if(hit.staffId===b.staffId && hit.time===b.start) return false;
+      const x=day.blocks.find(o=>o.id===b.id); if(!x) return false;
+      x.staffId=hit.staffId; x.start=hit.time; x.end=toHM(hit.min+dur);
+      return true;
+    },
+    save:hit=>api('adminBlockUpdate',{id:b.id,staffId:hit.staffId,date:day.date,
+      start:hit.time,end:toHM(hit.min+dur)})
+  });
 }
 
 function paintList(){
