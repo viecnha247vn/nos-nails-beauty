@@ -88,6 +88,7 @@ select{-webkit-appearance:none;appearance:none;
   color:#fff;font-size:11px;line-height:1.25;box-shadow:0 2px 6px rgba(42,31,29,.18);touch-action:none;
   border:1px solid rgba(255,255,255,.35);z-index:3}
 .ev:active{cursor:grabbing}
+.ev *{cursor:inherit}
 .ev b{display:block;font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ev span{opacity:.9;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ev.avbokad{opacity:.4}
@@ -265,7 +266,7 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
 <!-- APP -->
 <div id="app" hidden>
   <div class="top"><div class="wrap">
-    <div class="logo" id="salonName">N.O.S Nails <small style="opacity:.6;font-size:11px;font-weight:400">v2.4</small></div>
+    <div class="logo" id="salonName">N.O.S Nails <small style="opacity:.6;font-size:11px;font-weight:400">v2.5</small></div>
     <div class="langs"><button data-lang="sv" class="on">SV</button><button data-lang="vi">VI</button></div>
     <button class="btn ghost sm" id="logout" data-t="logout">Logga ut</button>
   </div></div>
@@ -930,6 +931,7 @@ function makeResizable(el,b,open,close,step){
   });
 }
 
+let dragged=false;
 let blkDragged=false;
 let editBlk=null;
 
@@ -962,107 +964,101 @@ $('#ebDel').onclick=async()=>{
   catch(e){ err('#ebErr',e.message); }
 };
 
-function makeBlockDraggable(el,b){
-  let startX,startY,moved=false,lastCell=null;
-  el.addEventListener('pointerdown',e=>{
-    if(e.target.classList.contains('hnd')) return;   // đang kéo giãn thì thôi
+/* ---------- dò ô đích bằng toạ độ (không phụ thuộc elementFromPoint) ---------- */
+let gridGeo=null;
+
+function snapGeo(){
+  const h=dayHours(); if(!h) return null;
+  const step=cfg.slotStep||15, open=toMin(h.open), close=toMin(h.close);
+  const cols=[...document.querySelectorAll('#grid .gcol')].map(c=>({
+    id:c.dataset.staff, rect:c.getBoundingClientRect()
+  }));
+  if(!cols.length) return null;
+  gridGeo={step,open,close,cols,rowH:ROW,pad:9};
+  return gridGeo;
+}
+
+function hitCell(x,y){
+  if(!gridGeo) return null;
+  const {step,open,close,cols,rowH,pad}=gridGeo;
+  let col=cols.find(c=>x>=c.rect.left && x<=c.rect.right);
+  if(!col){                                  // ra ngoài mép → lấy cột gần nhất
+    col=cols.reduce((a,c)=>{
+      const da=Math.min(Math.abs(x-a.rect.left),Math.abs(x-a.rect.right));
+      const dc=Math.min(Math.abs(x-c.rect.left),Math.abs(x-c.rect.right));
+      return dc<da?c:a;
+    });
+  }
+  const rel=y-col.rect.top-pad;
+  let m=open+Math.round(rel/rowH)*step;
+  m=Math.max(open,Math.min(close-step,m));
+  return {staffId:col.id, time:toHM(m), min:m};
+}
+
+function markCell(hit){
+  document.querySelectorAll('#grid .cell.drop').forEach(c=>c.classList.remove('drop'));
+  if(!hit) return;
+  const c=document.querySelector(`#grid .gcol[data-staff="${hit.staffId}"] .cell[data-time="${hit.time}"]`);
+  if(c) c.classList.add('drop');
+}
+
+/* ---------- kéo thả chung cho lịch khách và giờ khoá ---------- */
+function dragCore(el, opts){
+  let x0,y0,moved=false;
+  el.addEventListener('pointerdown', e=>{
     if(e.button>0) return;
-    startX=e.clientX; startY=e.clientY; moved=false;
-    el.setPointerCapture(e.pointerId);
+    if(e.target.classList && e.target.classList.contains('hnd')) return;
+    x0=e.clientX; y0=e.clientY; moved=false;
+    snapGeo();
+    try{ el.setPointerCapture(e.pointerId); }catch(_){}
 
     const move=ev=>{
-      if(!moved && (Math.abs(ev.clientX-startX)>5||Math.abs(ev.clientY-startY)>5)){ moved=true; blkDragged=true; el.classList.add('drag'); }
+      if(!moved && (Math.abs(ev.clientX-x0)>5||Math.abs(ev.clientY-y0)>5)){
+        moved=true; dragged=true; blkDragged=true; el.classList.add('drag');
+      }
       if(!moved) return;
-      el.style.transform=`translate(${ev.clientX-startX}px,${ev.clientY-startY}px)`;
-      el.style.pointerEvents='none';
-      const tg=document.elementFromPoint(ev.clientX,ev.clientY);
-      const cell=tg && tg.closest ? tg.closest('.cell') : null;
-      el.style.pointerEvents='';
-      if(lastCell&&lastCell!==cell) lastCell.classList.remove('drop');
-      if(cell){ cell.classList.add('drop'); lastCell=cell; }
+      ev.preventDefault();
+      el.style.transform=`translate(${ev.clientX-x0}px,${ev.clientY-y0}px)`;
+      markCell(hitCell(ev.clientX,ev.clientY));
     };
+
     const up=async ev=>{
       el.removeEventListener('pointermove',move);
       el.removeEventListener('pointerup',up);
+      el.removeEventListener('pointercancel',up);
       el.classList.remove('drag'); el.style.transform='';
-      if(lastCell) lastCell.classList.remove('drop');
-      if(!moved){ blkDragged=false; return; }
-      setTimeout(()=>{ blkDragged=false; },60);
+      markCell(null);
+      if(!moved){ dragged=false; blkDragged=false; return; }
+      setTimeout(()=>{ dragged=false; blkDragged=false; },80);
 
-      el.style.pointerEvents='none';
-      const tg=document.elementFromPoint(ev.clientX,ev.clientY);
-      const cell=tg && tg.closest ? tg.closest('.cell') : null;
-      el.style.pointerEvents='';
-      if(!cell) return;
-
-      const dur=toMin(b.end)-toMin(b.start);
-      const ns=toMin(cell.dataset.time);
-      if(cell.dataset.staff===b.staffId && cell.dataset.time===b.start) return;
-      try{
-        await api('adminBlockUpdate',{id:b.id,staffId:cell.dataset.staff,date:day.date,
-          start:toHM(ns),end:toHM(ns+dur)});
-        await load();
-      }catch(err2){ alert(err2.message); paintGrid(); }
+      const hit=hitCell(ev.clientX,ev.clientY);
+      if(!hit) return;
+      el.style.opacity='.45';
+      try{ await opts.onDrop(hit); await load(); }
+      catch(err2){ alert(err2.message); paintGrid(); }
     };
+
     el.addEventListener('pointermove',move);
     el.addEventListener('pointerup',up);
+    el.addEventListener('pointercancel',up);
   });
 }
 
-/* ---------- kéo & thả lịch khách (chuột + cảm ứng) ---------- */
-let dragged=null;
 function makeDraggable(el,b){
   if(String(b.status).toLowerCase()==='avbokad') return;
-  let startX,startY,moved=false,lastCell=null;
+  dragCore(el,{ onDrop: async hit=>{
+    if(hit.staffId===b.staffId && hit.time===b.time) return;
+    await api('adminEdit',{code:b.code,date:day.date,time:hit.time,serviceId:b.serviceId,staffId:hit.staffId});
+  }});
+}
 
-  el.addEventListener('pointerdown',e=>{
-    if(e.button>0) return;
-    startX=e.clientX; startY=e.clientY; moved=false;
-    el.setPointerCapture(e.pointerId);
-
-    const move=ev=>{
-      if(!moved && (Math.abs(ev.clientX-startX)>6||Math.abs(ev.clientY-startY)>6)){
-        moved=true; dragged=b; el.classList.add('drag');
-      }
-      if(!moved) return;
-      el.style.transform=`translate(${ev.clientX-startX}px,${ev.clientY-startY}px)`;
-      el.style.pointerEvents='none';
-      const target=document.elementFromPoint(ev.clientX,ev.clientY);
-      const cell=target && target.closest ? target.closest('.cell') : null;
-      el.style.pointerEvents='';
-      if(lastCell&&lastCell!==cell) lastCell.classList.remove('drop');
-      if(cell){ cell.classList.add('drop'); lastCell=cell; }
-    };
-
-    const up=async ev=>{
-      el.removeEventListener('pointermove',move);
-      el.removeEventListener('pointerup',up);
-      el.classList.remove('drag'); el.style.transform='';
-      if(lastCell) lastCell.classList.remove('drop');
-      if(!moved){ dragged=null; return; }
-
-      el.style.pointerEvents='none';
-      const target=document.elementFromPoint(ev.clientX,ev.clientY);
-      const cell=target && target.closest ? target.closest('.cell') : null;
-      el.style.pointerEvents='';
-      setTimeout(()=>{ dragged=null; },50);
-
-      if(!cell) return;
-      const newStaff=cell.dataset.staff, newTime=cell.dataset.time;
-      if(newStaff===b.staffId && newTime===b.time) return;
-
-      el.style.opacity='.4';
-      try{
-        await api('adminEdit',{code:b.code,date:day.date,time:newTime,serviceId:b.serviceId,staffId:newStaff});
-        await load();
-      }catch(err2){
-        alert(err2.message);
-        paintGrid();
-      }
-    };
-    el.addEventListener('pointermove',move);
-    el.addEventListener('pointerup',up);
-  });
+function makeBlockDraggable(el,b){
+  dragCore(el,{ onDrop: async hit=>{
+    const dur=toMin(b.end)-toMin(b.start);
+    if(hit.staffId===b.staffId && hit.time===b.start) return;
+    await api('adminBlockUpdate',{id:b.id,staffId:hit.staffId,date:day.date,
+      start:hit.time,end:toHM(hit.min+dur)});
+  }});
 }
 
 function paintList(){
