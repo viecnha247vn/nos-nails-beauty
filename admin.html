@@ -113,6 +113,10 @@ select{-webkit-appearance:none;appearance:none;
 .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.bad{background:var(--brick)}
 .ev.saving{opacity:.6}
+@media (hover:none),(pointer:coarse){
+  .ev,.ev.blk,.ev *{cursor:pointer!important}
+  .hnd{display:none!important}
+}
 .ghint{font-size:12px;color:var(--muted);margin:0 0 10px 2px}
 
 /* DAGSVY: lista */
@@ -290,7 +294,7 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
 <!-- APP -->
 <div id="app" hidden>
   <div class="top"><div class="wrap">
-    <div class="logo" id="salonName">N.O.S Nails Beauty Handen <small style="opacity:.6;font-size:11px;font-weight:400">v3.4</small></div>
+    <div class="logo" id="salonName">N.O.S Nails Beauty Handen <small style="opacity:.6;font-size:11px;font-weight:400">v3.5</small></div>
     <div class="langs"><button data-lang="sv" class="on">SV</button><button data-lang="vi">VI</button></div>
     <span class="sync" id="sync" title="Live"><i></i></span>
     <button class="btn ghost sm" id="logout" data-t="logout">Logga ut</button>
@@ -520,7 +524,8 @@ const T={
   tabDay:'Dag',tabWeek:'Vecka',tabSvc:'Tjänster',vGrid:'Schema',vList:'Lista',vCols:'Per tekniker',phoneCall:'Ring',report:'📊 Rapport',refresh:'↻',refreshed:'Uppdaterat ✓',
   repH:'Rapport',rDay:'Dag',rWeek:'Vecka',rMonth:'Månad',rBookings:'Bokningar',rRevenue:'Värde',rHours:'Timmar',
   rPerStaff:'Per tekniker',rTotal:'Totalt',rNoData:'Inga bokningar i perioden.',
-  gridHint:'Dra bokningar och spärrar mellan tekniker/tider. Dra i kanten för att ändra längd. Dubbelklick tar bort en spärr.',
+  gridHint:'Dra bokningar och spärrar mellan tekniker/tider (endast dator). Dra i kanten för att ändra längd.',
+  gridHintTouch:'Tryck på en bokning för att ändra tid eller tekniker. Tryck på en tom ruta för att boka.',
   qbLabel:'Spärra istället:',qbLunch:'🍽️ Lunch 60',qbPaus:'☕ Paus 30',qbMore:'🔒 Annat…',
   lunchWord:'Lunch',pausWord:'Paus',ebH:'Ändra spärr',ebDel:'Ta bort',saved:'Sparat ✓',synced:'Uppdaterat från annan enhet',
   freeNow:'Ledig nu',nextFree:'Nästa',fullDay:'Fullbokad',closedDay:'Stängt denna dag.',moveAsk:'Flytta bokningen?',
@@ -546,7 +551,8 @@ const T={
   tabDay:'Ngày',tabWeek:'Tuần',tabSvc:'Dịch vụ',vGrid:'Lịch',vList:'Danh sách',vCols:'Theo thợ',phoneCall:'Gọi',report:'📊 Báo cáo',refresh:'↻',refreshed:'Đã làm mới ✓',
   repH:'Báo cáo',rDay:'Ngày',rWeek:'Tuần',rMonth:'Tháng',rBookings:'Lượt khách',rRevenue:'Doanh thu',rHours:'Số giờ',
   rPerStaff:'Theo thợ',rTotal:'Tổng cộng',rNoData:'Kỳ này chưa có khách.',
-  gridHint:'Kéo lịch khách và giờ nghỉ sang thợ/giờ khác. Kéo mép trên–dưới để co giãn giờ nghỉ. Bấm đúp để bỏ khoá.',
+  gridHint:'Kéo lịch khách và giờ nghỉ sang thợ/giờ khác (chỉ trên máy tính). Kéo mép trên–dưới để co giãn.',
+  gridHintTouch:'Bấm vào lịch để đổi giờ hoặc đổi thợ. Bấm ô trống để thêm lịch.',
   qbLabel:'Hoặc khoá giờ:',qbLunch:'🍽️ Nghỉ trưa 60',qbPaus:'☕ Giải lao 30',qbMore:'🔒 Khác…',
   lunchWord:'Nghỉ trưa',pausWord:'Giải lao',ebH:'Sửa giờ khoá',ebDel:'Xoá',saved:'Đã lưu ✓',synced:'Máy khác vừa thay đổi — đã cập nhật',
   freeNow:'Đang rảnh',nextFree:'Rảnh lúc',fullDay:'Kín cả ngày',closedDay:'Ngày này tiệm nghỉ.',moveAsk:'Chuyển lịch này?',
@@ -592,7 +598,10 @@ let api=async function(action,p={}){
   if(!j.success) throw new Error(j.error||'Fel');
   return j.data;
 };
-function txt(){document.querySelectorAll('[data-t]').forEach(e=>e.textContent=t(e.dataset.t));}
+function txt(){document.querySelectorAll('[data-t]').forEach(e=>{
+  if(e.id==='gHint'){ e.textContent = (typeof MOUSE!=='undefined' && !MOUSE) ? t('gridHintTouch') : t('gridHint'); return; }
+  e.textContent=t(e.dataset.t);
+});}
 document.querySelectorAll('.langs button').forEach(b=>b.onclick=()=>{
   lang=b.dataset.lang;
   document.querySelectorAll('.langs button').forEach(x=>x.classList.toggle('on',x===b));
@@ -872,6 +881,7 @@ window.addEventListener('resize',syncTopH);
 
 function paintGrid(){
   syncTopH();
+  $('#gHint').textContent = MOUSE ? t('gridHint') : t('gridHintTouch');
   const box=$('#grid'); box.innerHTML='';
   const h=dayHours();
   if(!h){ box.innerHTML=`<p class="none" style="padding:20px;text-align:center">${t('closedDay')}</p>`; return; }
@@ -952,7 +962,7 @@ function paintGrid(){
       e.innerHTML=`<b>${b.reason||'Spärrad'}</b><span>${b.start}–${b.end}</span>`;
       e.ondblclick=()=>delBlock(b.id);
       e.addEventListener('click',ev=>{ if(!blkDragged) openBlockEdit(b); });
-      if(!whole){                       // khoá cả tiệm thì không kéo trong 1 cột
+      if(!whole && MOUSE){              // chỉ máy tính mới kéo/co giãn được
         e.appendChild(mkHandle('top'));
         e.appendChild(mkHandle('bot'));
         makeBlockDraggable(e,b);
@@ -1017,9 +1027,11 @@ function mkHandle(pos){
 }
 
 function makeResizable(el,b,open,close,step){
+  if(!MOUSE) return;
   el.querySelectorAll('.hnd').forEach(h=>{
     const isTop=h.classList.contains('top');
     h.addEventListener('pointerdown',e=>{
+      if(e.pointerType!=='mouse') return;
       e.stopPropagation();
       h.setPointerCapture(e.pointerId);
       const y0=e.clientY, s0=toMin(b.start), e0=toMin(b.end);
@@ -1136,9 +1148,13 @@ function markCell(hit){
 }
 
 /* ---------- kéo thả chung cho lịch khách và giờ khoá ---------- */
+const MOUSE = window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+
 function dragCore(el, opts){
+  if(!MOUSE) return;                       // điện thoại/tablet: không kéo, tránh lỡ tay
   let x0,y0,moved=false;
   el.addEventListener('pointerdown', e=>{
+    if(e.pointerType!=='mouse') return;
     if(e.button>0) return;
     if(e.target.classList && e.target.classList.contains('hnd')) return;
     x0=e.clientX; y0=e.clientY; moved=false;
