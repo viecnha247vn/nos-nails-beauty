@@ -110,19 +110,13 @@ footer a.tel{color:var(--brick);font-weight:600;text-decoration:none}
 .gcard:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(140,58,49,.16);border-color:var(--brick)}
 .gcard .ph{position:relative;aspect-ratio:4/5;overflow:hidden;background:#F1EAE7}
 .gcard .ph img,.gcard .ph svg{width:100%;height:100%;object-fit:cover;display:block}
-.gcard .cap{padding:8px 10px 10px}
-.gcard .cap b{display:block;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.gcard .cap small{font-size:11px;color:var(--brick);font-weight:600}
+.gcard .ph{border-radius:14px}
 
 /* xem ảnh lớn */
 .lightbox{position:fixed;inset:0;background:rgba(20,14,13,.93);z-index:60;display:flex;
   align-items:center;justify-content:center;flex-direction:column;padding:20px}
 .lightbox img,.lightbox svg{max-width:min(100%,420px);max-height:70vh;border-radius:14px}
-.lbcap{color:#fff;font-size:15px;font-weight:600;margin-top:16px}
-.lbsub{color:rgba(255,255,255,.6);font-size:13px;margin-top:4px}
-.lbbtn{margin-top:16px;background:var(--brick);color:#fff;border:0;border-radius:8px;padding:12px 22px;
-  font-weight:600;cursor:pointer}
-.lbbtn:hover{background:var(--brick-d)}
+
 .lbx{position:absolute;top:14px;right:16px;background:rgba(255,255,255,.15);border:0;color:#fff;
   width:38px;height:38px;border-radius:50%;font-size:17px;cursor:pointer}
 .lbnav{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.14);border:0;color:#fff;
@@ -307,9 +301,6 @@ footer a{color:var(--brick)}
   <button class="lbnav prev" id="lbPrev">‹</button>
   <div id="lbBox"></div>
   <button class="lbnav next" id="lbNext">›</button>
-  <p class="lbcap" id="lbCap"></p>
-  <p class="lbsub" id="lbSub"></p>
-  <button class="lbbtn" id="lbBook" data-t="galBook">Boka den här stilen</button>
 </div>
 
 <main class="wrap">
@@ -405,7 +396,7 @@ const T={
  sv:{h1:'Välj behandling',h2:'Välj tid',h3:'Dina uppgifter',loading:'Laddar…',
   fName:'Namn',fPhone:'Telefon',fMail:'E-post',fNote:'Meddelande (valfritt)',
   next:'Nästa',back:'Tillbaka',confirm:'Bekräfta bokning',pickSvc:'Välj en behandling',
-  pick:'Välj',picked:'Vald',anyStaff:'Alla',open:'Öppet nu',closed:'Stängt nu',callUs:'Ring oss',galH:'Populära stilar',galHint:'Tryck på en stil för att boka →',galBook:'Boka den här stilen',allHours:'Alla öppettider ▾',hideHours:'Dölj ▴',shut:'Stängt',todayIs:'Idag',
+  pick:'Välj',picked:'Vald',anyStaff:'Alla',open:'Öppet nu',closed:'Stängt nu',callUs:'Ring oss',galH:'Populära stilar',galHint:'Svep för fler →',allHours:'Alla öppettider ▾',hideHours:'Dölj ▴',shut:'Stängt',todayIs:'Idag',
   today:'Idag',tomorrow:'Imorgon',firstFree:'⚡ Första lediga',calendar:'📅 Välj datum',legFree:'Lediga tider',legFull:'Fullbokat / stängt',bookUntil:'Bokningsbart t.o.m.',
   morning:'Förmiddag',afternoon:'Eftermiddag',evening:'Kväll',
   tapHint:'Tryck på en tid så går du direkt vidare.',
@@ -418,7 +409,7 @@ const T={
  en:{h1:'Choose a treatment',h2:'Choose a time',h3:'Your details',loading:'Loading…',
   fName:'Name',fPhone:'Phone',fMail:'Email',fNote:'Message (optional)',
   next:'Next',back:'Back',confirm:'Confirm booking',pickSvc:'Choose a treatment',
-  pick:'Select',picked:'Selected',anyStaff:'Anyone',open:'Open now',closed:'Closed now',callUs:'Call us',galH:'Popular styles',galHint:'Tap a style to book →',galBook:'Book this style',allHours:'All opening hours ▾',hideHours:'Hide ▴',shut:'Closed',todayIs:'Today',
+  pick:'Select',picked:'Selected',anyStaff:'Anyone',open:'Open now',closed:'Closed now',callUs:'Call us',galH:'Popular styles',galHint:'Swipe for more →',allHours:'All opening hours ▾',hideHours:'Hide ▴',shut:'Closed',todayIs:'Today',
   today:'Today',tomorrow:'Tomorrow',firstFree:'⚡ First available',calendar:'📅 Pick a date',legFree:'Free times',legFull:'Fully booked / closed',bookUntil:'Bookable until',
   morning:'Morning',afternoon:'Afternoon',evening:'Evening',
   tapHint:'Tap a time and you go straight on.',
@@ -431,7 +422,7 @@ const T={
  vi:{h1:'Chọn dịch vụ',h2:'Chọn giờ',h3:'Thông tin của bạn',loading:'Đang tải…',
   fName:'Họ tên',fPhone:'Điện thoại',fMail:'Email',fNote:'Ghi chú (không bắt buộc)',
   next:'Tiếp',back:'Quay lại',confirm:'Xác nhận đặt lịch',pickSvc:'Chọn dịch vụ',
-  pick:'Chọn',picked:'Đã chọn',anyStaff:'Thợ nào cũng được',open:'Đang mở cửa',closed:'Đang đóng cửa',callUs:'Gọi tiệm',galH:'Mẫu đang được chuộng',galHint:'Bấm vào mẫu để đặt →',galBook:'Đặt mẫu này',allHours:'Xem cả tuần ▾',hideHours:'Thu gọn ▴',shut:'Nghỉ',todayIs:'Hôm nay',
+  pick:'Chọn',picked:'Đã chọn',anyStaff:'Thợ nào cũng được',open:'Đang mở cửa',closed:'Đang đóng cửa',callUs:'Gọi tiệm',galH:'Mẫu đang được chuộng',galHint:'Vuốt để xem thêm →',allHours:'Xem cả tuần ▾',hideHours:'Thu gọn ▴',shut:'Nghỉ',todayIs:'Hôm nay',
   today:'Hôm nay',tomorrow:'Ngày mai',firstFree:'⚡ Giờ sớm nhất',calendar:'📅 Chọn ngày',legFree:'Còn chỗ',legFull:'Kín / nghỉ',bookUntil:'Đặt được tới',
   morning:'Buổi sáng',afternoon:'Buổi chiều',evening:'Buổi tối',
   tapHint:'Bấm vào giờ là qua bước tiếp theo luôn.',
@@ -571,8 +562,7 @@ function drawGallery(){
     const media = it.photo
       ? `<img src="${it.photo}" alt="${it.title}" loading="lazy">`
       : nailSVG(it.design);
-    b.innerHTML=`<div class="ph">${media}</div>
-      <div class="cap"><b>${it.title}</b>${it.svc?`<small>${it.svc.price} ${t('kr')} · ${it.svc.minutes} ${t('min')}</small>`:''}</div>`;
+    b.innerHTML=`<div class="ph">${media}</div>`;
     const img=b.querySelector('img'); if(img) img.onerror=()=>b.remove();
     b.onclick=()=>openLb(i);
     row.appendChild(b);
@@ -595,20 +585,12 @@ function openLb(i){
   const big = it.photo && it.photo.includes('images.pexels.com')
     ? it.photo.replace(/w=600&h=750&fit=crop/,'w=1000') : it.photo;
   $('#lbBox').innerHTML = it.photo ? `<img src="${big}" alt="">` : nailSVG(it.design,true);
-  $('#lbCap').textContent=it.title;
-  $('#lbSub').textContent=it.svc? `${it.svc.name[lang]||it.svc.name.sv} · ${it.svc.price} ${t('kr')}` : '';
-  $('#lbBook').hidden=!it.svc;
   $('#lb').hidden=false;
 }
 $('#lbClose').onclick=()=>$('#lb').hidden=true;
 $('#lb').onclick=e=>{ if(e.target===$('#lb')) $('#lb').hidden=true; };
 $('#lbPrev').onclick=e=>{ e.stopPropagation(); openLb((gIdx-1+gItems.length)%gItems.length); };
 $('#lbNext').onclick=e=>{ e.stopPropagation(); openLb((gIdx+1)%gItems.length); };
-$('#lbBook').onclick=()=>{
-  const it=gItems[gIdx];
-  $('#lb').hidden=true;
-  if(it.svc) chooseService(it.svc);
-};
 document.addEventListener('keydown',e=>{
   if($('#lb').hidden) return;
   if(e.key==='Escape') $('#lb').hidden=true;
