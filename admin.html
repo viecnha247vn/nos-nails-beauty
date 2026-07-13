@@ -107,6 +107,13 @@ select{-webkit-appearance:none;appearance:none;
 .sync i{width:7px;height:7px;border-radius:50%;background:#5FD3A3;font-style:normal;
   box-shadow:0 0 0 3px rgba(95,211,163,.25)}
 .sync.off i{background:#E8B4AC;box-shadow:none}
+#bar{position:fixed;top:0;left:0;height:3px;width:0;background:var(--brick);z-index:60;
+  transition:width .25s ease,opacity .3s;opacity:0}
+#bar.on{opacity:1}
+.stale{opacity:.55;transition:opacity .15s}
+@keyframes shim{0%{background-position:-320px 0}100%{background-position:320px 0}}
+.sk{background:linear-gradient(90deg,#EFE7E4 8%,#F8F4F2 18%,#EFE7E4 28%);background-size:600px 100%;
+  animation:shim 1.1s linear infinite;border-radius:8px}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);z-index:60;
   background:var(--ink);color:#fff;font-size:13px;font-weight:600;padding:9px 16px;border-radius:99px;
   opacity:0;transition:.18s;pointer-events:none;box-shadow:0 8px 20px rgba(42,31,29,.3)}
@@ -294,7 +301,7 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
 <!-- APP -->
 <div id="app" hidden>
   <div class="top"><div class="wrap">
-    <div class="logo" id="salonName">N.O.S Nails Beauty Handen <small style="opacity:.6;font-size:11px;font-weight:400">v3.5</small></div>
+    <div class="logo" id="salonName">N.O.S Nails Beauty Handen <small style="opacity:.6;font-size:11px;font-weight:400">v3.6</small></div>
     <div class="langs"><button data-lang="sv" class="on">SV</button><button data-lang="vi">VI</button></div>
     <span class="sync" id="sync" title="Live"><i></i></span>
     <button class="btn ghost sm" id="logout" data-t="logout">Logga ut</button>
@@ -399,6 +406,7 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
 </div>
 
 <!-- MODAL: ÄNDRA SPÄRR -->
+<div id="bar"></div>
 <div class="toast" id="toast"></div>
 
 <div class="mask" id="emask">
@@ -625,6 +633,7 @@ $('#loginBtn').onclick=async()=>{
     $('#login').hidden=true; $('#app').hidden=false;
     $('#salonName').textContent=cfg.salon.name;
     $('#datePick').value=date;
+    try{ myVer=(await api('version')).v; }catch(e){}
     load();
     startSync();
   }catch(e){ $('#loginErr').textContent=e.message; $('#loginErr').hidden=false; }
@@ -670,11 +679,26 @@ $('#datePick').onchange=e=>{ date=e.target.value; load(); };
 
 async function load(){
   try{
-    if(view==='day'){ day=await api('adminDay',{date}); }
-    else if(view==='week'){ const from=monday(date); weekData=await api('adminRange',{from,to:addDays(from,6)}); }
-    else{ svcData=await api('adminServices'); galData=await api('adminGallery'); cfg=await api('adminLogin'); }
-    paint();
-  }catch(e){ $('#cols').innerHTML='<p class="none">'+e.message+'</p>'; }
+    if(view==='day'){
+      const k='day|'+date, hit=cache[k];
+      if(hit){ day=hit.data; paint(); document.querySelector('.wrap').classList.toggle('stale',hit.v!==myVer); }
+      day=await fetchDay(date);
+      document.querySelector('.wrap').classList.remove('stale');
+      paint(); prefetchAround();
+    }
+    else if(view==='week'){
+      const from=monday(date), to=addDays(from,6), k='rng|'+from+'|'+to, hit=cache[k];
+      if(hit){ weekData=hit.data; paint(); }
+      weekData=await fetchRange(from,to);
+      paint();
+    }
+    else{
+      if(!svcData) $('#svcList').innerHTML='<div class="sk" style="height:64px;margin-bottom:8px"></div>'.repeat(4);
+      const [sv,ga]=await Promise.all([api('adminServices'),api('adminGallery')]);
+      svcData=sv; galData=ga;
+      paint();
+    }
+  }catch(e){ $('#cols').innerHTML='<p class="none">'+e.message+'</p>'; bar(false); }
 }
 
 /* ---------- rita ---------- */
@@ -1473,6 +1497,57 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape') document.querySelectorAll('.mask.on').forEach(m=>m.classList.remove('on'));
 });
 
+/* ================= CACHE + TẢI NGẦM ================= */
+const cache={};                    // 'day|2026-07-13' → {v, data}
+const inflight={};                 // chống gọi trùng cùng lúc
+
+function bar(on){ const b=$('#bar'); if(on){ b.classList.add('on'); b.style.width='70%'; }
+  else { b.style.width='100%'; setTimeout(()=>{ b.classList.remove('on'); b.style.width='0'; },300); } }
+
+async function fetchDay(d,{silent}={}){
+  const k='day|'+d;
+  const hit=cache[k];
+  if(hit && hit.v===myVer) return hit.data;             // còn tươi → dùng luôn
+  if(inflight[k]) return inflight[k];                    // đang tải → chờ chung
+  const p=(async()=>{
+    if(!silent) bar(true);
+    try{
+      const r=await api('adminDay',{date:d});
+      cache[k]={v:myVer,data:r};
+      return r;
+    } finally { delete inflight[k]; if(!silent) bar(false); }
+  })();
+  inflight[k]=p;
+  return p;
+}
+
+async function fetchRange(from,to,{silent}={}){
+  const k='rng|'+from+'|'+to;
+  const hit=cache[k];
+  if(hit && hit.v===myVer) return hit.data;
+  if(inflight[k]) return inflight[k];
+  const p=(async()=>{
+    if(!silent) bar(true);
+    try{
+      const r=await api('adminRange',{from,to});
+      cache[k]={v:myVer,data:r};
+      return r;
+    } finally { delete inflight[k]; if(!silent) bar(false); }
+  })();
+  inflight[k]=p;
+  return p;
+}
+
+/* tải trước ngày trước/sau + tuần hiện tại, chạy ngầm */
+function prefetchAround(){
+  setTimeout(()=>{
+    fetchDay(addDays(date,1),{silent:true}).catch(()=>{});
+    fetchDay(addDays(date,-1),{silent:true}).catch(()=>{});
+    const f=monday(date);
+    fetchRange(f,addDays(f,6),{silent:true}).catch(()=>{});
+  },300);
+}
+
 /* ================= ĐỒNG BỘ NHIỀU MÁY ================= */
 let myVer=null, syncTimer=null, syncing=false;
 
@@ -1491,7 +1566,7 @@ async function checkVersion(){
     $('#sync').classList.remove('off');
     if(myVer===null){ myVer=r.v; return; }
     if(r.v!==myVer){
-      myVer=r.v;
+      myVer=r.v;                       // mọi cache cũ tự coi là hết hạn
       if(busyNow()){ setTimeout(checkVersion,3000); return; }  // thử lại sau
       const svcNow = view==='svc';
       await load();                       // tải lại đúng khung đang xem
@@ -1518,6 +1593,7 @@ const _api=api;
 api=async function(action,p={}){
   const r=await _api(action,p);
   if(/^admin(Edit|Book|Update|BlockAdd|BlockUpdate|BlockDelete|Service|Gallery|Refresh)/.test(action)){
+    Object.keys(cache).forEach(k=>delete cache[k]);
     try{ const v=await _api('version'); myVer=v.v; }catch(e){}
   }
   return r;
