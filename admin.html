@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Admin – N.O.S Nails Beauty Handen</title>
+<link rel="preconnect" href="https://script.google.com" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -15,6 +16,9 @@
 body{font-family:'Inter',-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased}
 .wrap{max-width:1240px;margin:0 auto;padding:0 16px}
 button,input,select,textarea{font:inherit;color:inherit}
+button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.btn:active,.tabs button:active,.vtabs button:active,.li:active,.svcrow:active{transform:scale(.985)}
+.btn,.li,.svcrow{transition:transform .07s ease,box-shadow .12s,background .12s}
 [hidden]{display:none!important}
 
 .top{background:var(--brick);color:#fff;padding:12px 0;position:sticky;top:0;z-index:30}
@@ -282,7 +286,7 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
 <!-- APP -->
 <div id="app" hidden>
   <div class="top"><div class="wrap">
-    <div class="logo" id="salonName">N.O.S Nails Beauty Handen <small style="opacity:.6;font-size:11px;font-weight:400">v3.0</small></div>
+    <div class="logo" id="salonName">N.O.S Nails Beauty Handen <small style="opacity:.6;font-size:11px;font-weight:400">v3.1</small></div>
     <div class="langs"><button data-lang="sv" class="on">SV</button><button data-lang="vi">VI</button></div>
     <button class="btn ghost sm" id="logout" data-t="logout">Logga ut</button>
   </div></div>
@@ -593,8 +597,16 @@ document.querySelectorAll('.langs button').forEach(b=>b.onclick=()=>{
 /* ---------- login ---------- */
 $('#loginBtn').onclick=async()=>{
   key=$('#key').value.trim(); $('#loginErr').hidden=true;
+  const cached=(()=>{ try{ const r=sessionStorage.getItem('nb_admin_cfg'); return r?JSON.parse(r):null; }catch(e){ return null; } })();
+  if(cached){                       // vẽ khung ngay, xác thực chạy ngầm
+    cfg=cached;
+    $('#login').hidden=true; $('#app').hidden=false;
+    $('#datePick').value=date;
+    load();
+  }
   try{
     cfg=await api('adminLogin');
+    try{ sessionStorage.setItem('nb_admin_cfg',JSON.stringify(cfg)); }catch(e){}
     sessionStorage.setItem('nb_key',key);
     $('#login').hidden=true; $('#app').hidden=false;
     $('#salonName').textContent=cfg.salon.name;
