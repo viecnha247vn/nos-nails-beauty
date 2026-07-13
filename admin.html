@@ -103,6 +103,10 @@ select{-webkit-appearance:none;appearance:none;
 .ev.drag{opacity:.55;box-shadow:0 8px 20px rgba(42,31,29,.35);z-index:20}
 .nowline{position:absolute;left:0;right:0;height:2px;background:#D63B2F;z-index:9;pointer-events:none;margin-top:9px}
 .nowline:before{content:"";position:absolute;left:-4px;top:-3px;width:8px;height:8px;border-radius:50%;background:#D63B2F}
+.sync{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:rgba(255,255,255,.75)}
+.sync i{width:7px;height:7px;border-radius:50%;background:#5FD3A3;font-style:normal;
+  box-shadow:0 0 0 3px rgba(95,211,163,.25)}
+.sync.off i{background:#E8B4AC;box-shadow:none}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);z-index:60;
   background:var(--ink);color:#fff;font-size:13px;font-weight:600;padding:9px 16px;border-radius:99px;
   opacity:0;transition:.18s;pointer-events:none;box-shadow:0 8px 20px rgba(42,31,29,.3)}
@@ -286,8 +290,9 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
 <!-- APP -->
 <div id="app" hidden>
   <div class="top"><div class="wrap">
-    <div class="logo" id="salonName">N.O.S Nails Beauty Handen <small style="opacity:.6;font-size:11px;font-weight:400">v3.3</small></div>
+    <div class="logo" id="salonName">N.O.S Nails Beauty Handen <small style="opacity:.6;font-size:11px;font-weight:400">v3.4</small></div>
     <div class="langs"><button data-lang="sv" class="on">SV</button><button data-lang="vi">VI</button></div>
+    <span class="sync" id="sync" title="Live"><i></i></span>
     <button class="btn ghost sm" id="logout" data-t="logout">Logga ut</button>
   </div></div>
 
@@ -517,7 +522,7 @@ const T={
   rPerStaff:'Per tekniker',rTotal:'Totalt',rNoData:'Inga bokningar i perioden.',
   gridHint:'Dra bokningar och spärrar mellan tekniker/tider. Dra i kanten för att ändra längd. Dubbelklick tar bort en spärr.',
   qbLabel:'Spärra istället:',qbLunch:'🍽️ Lunch 60',qbPaus:'☕ Paus 30',qbMore:'🔒 Annat…',
-  lunchWord:'Lunch',pausWord:'Paus',ebH:'Ändra spärr',ebDel:'Ta bort',saved:'Sparat ✓',
+  lunchWord:'Lunch',pausWord:'Paus',ebH:'Ändra spärr',ebDel:'Ta bort',saved:'Sparat ✓',synced:'Uppdaterat från annan enhet',
   freeNow:'Ledig nu',nextFree:'Nästa',fullDay:'Fullbokad',closedDay:'Stängt denna dag.',moveAsk:'Flytta bokningen?',
   svcNote:'Ändringar syns direkt på bokningssidan.',newSvc:'+ Ny behandling',svcNew:'Ny behandling',svcEdit:'Ändra behandling',
   svcSub:'Namnet visas för kunden. Priset i kronor.',svcNameSv:'Namn (svenska)',svcNameEn:'Namn (engelska)',
@@ -543,7 +548,7 @@ const T={
   rPerStaff:'Theo thợ',rTotal:'Tổng cộng',rNoData:'Kỳ này chưa có khách.',
   gridHint:'Kéo lịch khách và giờ nghỉ sang thợ/giờ khác. Kéo mép trên–dưới để co giãn giờ nghỉ. Bấm đúp để bỏ khoá.',
   qbLabel:'Hoặc khoá giờ:',qbLunch:'🍽️ Nghỉ trưa 60',qbPaus:'☕ Giải lao 30',qbMore:'🔒 Khác…',
-  lunchWord:'Nghỉ trưa',pausWord:'Giải lao',ebH:'Sửa giờ khoá',ebDel:'Xoá',saved:'Đã lưu ✓',
+  lunchWord:'Nghỉ trưa',pausWord:'Giải lao',ebH:'Sửa giờ khoá',ebDel:'Xoá',saved:'Đã lưu ✓',synced:'Máy khác vừa thay đổi — đã cập nhật',
   freeNow:'Đang rảnh',nextFree:'Rảnh lúc',fullDay:'Kín cả ngày',closedDay:'Ngày này tiệm nghỉ.',moveAsk:'Chuyển lịch này?',
   svcNote:'Sửa xong hiện ngay trên trang đặt lịch của khách.',newSvc:'+ Thêm dịch vụ',svcNew:'Thêm dịch vụ',svcEdit:'Sửa dịch vụ',
   svcSub:'Tên hiện cho khách thấy. Giá tính bằng kronor.',svcNameSv:'Tên (tiếng Thụy Điển)',svcNameEn:'Tên (tiếng Anh)',
@@ -580,13 +585,13 @@ function locale(){return lang==='vi'?'vi-VN':'sv-SE';}
 function staffName(id){const s=cfg.staff.find(x=>x.id===id);return s?s.name:(String(id).toUpperCase()==='ALLA'?t('allStaff'):id);}
 function staffColor(id){const i=cfg.staff.findIndex(x=>x.id===id);return i<0?'#7A6E82':SWATCH[i%SWATCH.length];}
 
-async function api(action,p={}){
+let api=async function(action,p={}){
   const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify({action,key,...p})});
   const j=await r.json();
   if(!j.success) throw new Error(j.error||'Fel');
   return j.data;
-}
+};
 function txt(){document.querySelectorAll('[data-t]').forEach(e=>e.textContent=t(e.dataset.t));}
 document.querySelectorAll('.langs button').forEach(b=>b.onclick=()=>{
   lang=b.dataset.lang;
@@ -612,6 +617,7 @@ $('#loginBtn').onclick=async()=>{
     $('#salonName').textContent=cfg.salon.name;
     $('#datePick').value=date;
     load();
+    startSync();
   }catch(e){ $('#loginErr').textContent=e.message; $('#loginErr').hidden=false; }
 };
 $('#key').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#loginBtn').click(); });
@@ -1450,6 +1456,56 @@ async function delBlock(id){
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape') document.querySelectorAll('.mask.on').forEach(m=>m.classList.remove('on'));
 });
+
+/* ================= ĐỒNG BỘ NHIỀU MÁY ================= */
+let myVer=null, syncTimer=null, syncing=false;
+
+function busyNow(){
+  // đang kéo, đang mở cửa sổ, hoặc tab ẩn → hoãn làm mới
+  return dragged || blkDragged ||
+         document.querySelector('.mask.on') ||
+         document.hidden;
+}
+
+async function checkVersion(){
+  if(!key || syncing) return;
+  syncing=true;
+  try{
+    const r=await api('version');
+    $('#sync').classList.remove('off');
+    if(myVer===null){ myVer=r.v; return; }
+    if(r.v!==myVer){
+      myVer=r.v;
+      if(busyNow()){ setTimeout(checkVersion,3000); return; }  // thử lại sau
+      const svcNow = view==='svc';
+      await load();                       // tải lại đúng khung đang xem
+      if(!svcNow) toast(t('synced'));
+    }
+  }catch(e){
+    $('#sync').classList.add('off');
+  }finally{ syncing=false; }
+}
+
+function startSync(){
+  clearInterval(syncTimer);
+  syncTimer=setInterval(()=>{ if(!document.hidden) checkVersion(); }, 8000);
+  checkVersion();
+}
+
+// quay lại tab / mở khoá máy → kiểm tra ngay
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) checkVersion(); });
+window.addEventListener('focus',()=>checkVersion());
+window.addEventListener('online',()=>checkVersion());
+
+// mọi thao tác của chính mình cũng cập nhật mốc phiên bản, để khỏi tự tải lại
+const _api=api;
+api=async function(action,p={}){
+  const r=await _api(action,p);
+  if(/^admin(Edit|Book|Update|BlockAdd|BlockUpdate|BlockDelete|Service|Gallery|Refresh)/.test(action)){
+    try{ const v=await _api('version'); myVer=v.v; }catch(e){}
+  }
+  return r;
+};
 
 /* ================= BÁO CÁO ================= */
 let repMode='day';
