@@ -286,7 +286,7 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
 <!-- APP -->
 <div id="app" hidden>
   <div class="top"><div class="wrap">
-    <div class="logo" id="salonName">N.O.S Nails Beauty Handen <small style="opacity:.6;font-size:11px;font-weight:400">v3.2</small></div>
+    <div class="logo" id="salonName">N.O.S Nails Beauty Handen <small style="opacity:.6;font-size:11px;font-weight:400">v3.3</small></div>
     <div class="langs"><button data-lang="sv" class="on">SV</button><button data-lang="vi">VI</button></div>
     <button class="btn ghost sm" id="logout" data-t="logout">Logga ut</button>
   </div></div>
@@ -807,8 +807,8 @@ function paintDay(){
   const box=$('#cols'); box.innerHTML='';
   const salonBlocks=day.blocks.filter(b=>b.staffId.toUpperCase()==='ALLA');
   cfg.staff.forEach((st,i)=>{
-    const mine=day.bookings.filter(b=>b.staffId===st.id);
-    const act=mine.filter(b=>b.status.toLowerCase()!=='avbokad');
+    const mine=day.bookings.filter(b=>b.staffId===st.id && b.status.toLowerCase()!=='avbokad');
+    const act=mine;
     const blocks=day.blocks.filter(b=>b.staffId===st.id).concat(salonBlocks);
     const col=document.createElement('div'); col.className='col';
     col.innerHTML=`<h3><span class="dot" style="background:${SWATCH[i%SWATCH.length]}"></span>${st.name}
@@ -925,7 +925,7 @@ function paintGrid(){
       col.appendChild(c);
     }
     // lịch khách
-    day.bookings.filter(b=>b.staffId===st.id).forEach(b=>{
+    day.bookings.filter(b=>b.staffId===st.id && String(b.status).toLowerCase()!=='avbokad').forEach(b=>{
       const top=(toMin(b.time)-open)/step*ROW, ht=Math.max(ROW,(toMin(b.end)-toMin(b.time))/step*ROW-2);
       const e=document.createElement('div');
       e.className='ev'+(String(b.status).toLowerCase()==='avbokad'?' avbokad':'');
@@ -1211,7 +1211,7 @@ function makeBlockDraggable(el,b){
 function paintList(){
   const box=$('#list'); box.innerHTML='';
   const items=[]
-    .concat(day.bookings.map(b=>({sort:b.time,type:'bk',b})))
+    .concat(day.bookings.filter(b=>String(b.status).toLowerCase()!=='avbokad').map(b=>({sort:b.time,type:'bk',b})))
     .concat(day.blocks.map(b=>({sort:b.start,type:'blk',b})))
     .sort((a,c)=>a.sort<c.sort?-1:1);
 
@@ -1271,7 +1271,7 @@ function paintWeek(){
     el.appendChild(tot);
 
     const items=[]
-      .concat(dy.bookings.map(x=>({sort:x.time,type:'bk',x})))
+      .concat(dy.bookings.filter(x=>String(x.status).toLowerCase()!=='avbokad').map(x=>({sort:x.time,type:'bk',x})))
       .concat(dy.blocks.map(x=>({sort:x.start,type:'blk',x})))
       .sort((p,q)=>p.sort<q.sort?-1:1);
 
