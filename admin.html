@@ -286,7 +286,7 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
 <!-- APP -->
 <div id="app" hidden>
   <div class="top"><div class="wrap">
-    <div class="logo" id="salonName">N.O.S Nails Beauty Handen <small style="opacity:.6;font-size:11px;font-weight:400">v3.1</small></div>
+    <div class="logo" id="salonName">N.O.S Nails Beauty Handen <small style="opacity:.6;font-size:11px;font-weight:400">v3.2</small></div>
     <div class="langs"><button data-lang="sv" class="on">SV</button><button data-lang="vi">VI</button></div>
     <button class="btn ghost sm" id="logout" data-t="logout">Logga ut</button>
   </div></div>
@@ -1303,10 +1303,15 @@ $('#mask').onclick=e=>{ if(e.target===$('#mask')) $('#mask').classList.remove('o
 
 function fillSelects(){
   const sv=$('#mSvc'); sv.innerHTML='';
-  cfg.services.forEach(s=>{
-    const o=document.createElement('option'); o.value=s.id;
-    o.textContent=`${s.name[lang==='vi'?'vi':'sv']} · ${s.minutes} min · ${s.price} kr`;
-    sv.appendChild(o);
+  const cats=[...new Set(cfg.services.map(s=>s.category||'–'))];
+  cats.forEach(cat=>{
+    const g=document.createElement('optgroup'); g.label=cat;
+    cfg.services.filter(s=>(s.category||'–')===cat).forEach(s=>{
+      const o=document.createElement('option'); o.value=s.id;
+      o.textContent=`${s.name[lang==='vi'?'vi':'sv']} · ${s.minutes} min · ${s.price} kr`;
+      g.appendChild(o);
+    });
+    sv.appendChild(g);
   });
   const st=$('#mStaff'); st.innerHTML='';
   const any=document.createElement('option'); any.value='any'; any.textContent=t('anyStaff'); st.appendChild(any);
