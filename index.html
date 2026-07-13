@@ -523,16 +523,20 @@ function applyCfg(){
   render();
 }
 
-(async function(){
+async function boot(){
   // a) có cấu hình cũ trong máy → vẽ ngay lập tức (0 giây)
-  const cached=SS.get('cfg',600);
-  if(cached){ cfg=cached; applyCfg(); }
+  let cached=null;
+  try{ cached=SS.get('cfg',600); }catch(e){}
+  if(cached){
+    try{ cfg=cached; applyCfg(); }
+    catch(e){ console.warn('cache trục trặc, bỏ qua',e); cfg=null; cached=null; }
+  }
   try{
     cfg=await api('getConfig');
     SS.set('cfg',cfg);
     applyCfg();
   }catch(e){ if(!cached) showErr(e.message); }
-})();
+}
 
 /* ---------- galleri: 10 stilar (vektor, ingen upphovsrätt) ---------- */
 const PX =id=>`https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=600&h=750&fit=crop`;
@@ -982,6 +986,9 @@ $('#fCancel').onclick=async ev=>{
   const phone=prompt(t('cPhone')); if(!phone) return;
   try{ await api('cancel',{code,phone}); alert(t('cOk')); }catch(e){ alert(e.message); }
 };
+
+/* ---- khởi động SAU khi mọi biến đã khai báo xong ---- */
+boot();
 </script>
 </body>
 </html>
