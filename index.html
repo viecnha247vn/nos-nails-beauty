@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Boka tid – N.O.S Nails Beauty Handen</title>
+<link rel="preconnect" href="https://script.google.com" crossorigin>
+<link rel="dns-prefetch" href="https://script.googleusercontent.com">
+<link rel="preconnect" href="https://images.pexels.com" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -23,6 +26,15 @@
   --card:#FFFFFF;
 }
 *{box-sizing:border-box;margin:0;padding:0}
+button,.row,.dbtn,.tbtn,.chip,.gcard{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.row:active,.tbtn:active,.dbtn:active,.chip:active,.gcard:active,.btn:active{transform:scale(.97)}
+.btn,.row,.tbtn,.dbtn,.chip{transition:transform .07s ease,background .12s,border-color .12s}
+@keyframes shimmer{0%{background-position:-360px 0}100%{background-position:360px 0}}
+.sk{background:linear-gradient(90deg,#EDE7E4 8%,#F6F2F0 18%,#EDE7E4 28%);background-size:600px 100%;
+  animation:shimmer 1.1s linear infinite;border-radius:8px}
+.sk-t{height:44px}
+.sk-row{height:64px;margin-bottom:8px}
+.sk-d{width:62px;height:62px;flex:none;border-radius:10px}
 body{font-family:'Inter',-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--ink);
   font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:112px}
 button,input,textarea{font:inherit;color:inherit}
@@ -456,6 +468,29 @@ async function api(action,p={}){
   if(!j.success) throw new Error(j.error||'Fel');
   return j.data;
 }
+
+/* ---- bộ nhớ tạm trong máy khách ---- */
+const SS={
+  get(k,maxAgeSec){
+    try{
+      const raw=sessionStorage.getItem('nb_'+k); if(!raw) return null;
+      const o=JSON.parse(raw);
+      if(maxAgeSec && (Date.now()-o.t)/1000>maxAgeSec) return null;
+      return o.v;
+    }catch(e){ return null; }
+  },
+  set(k,v){ try{ sessionStorage.setItem('nb_'+k,JSON.stringify({t:Date.now(),v})); }catch(e){} }
+};
+const dayCache={};   // 'from|svc|staff' → days[]
+
+async function getDaysCached(from,force){
+  const key=`${from}|${sel.svc.id}|${sel.staff}`;
+  if(!force && dayCache[key]) return dayCache[key];
+  const r=await api('getDays',{serviceId:sel.svc.id,staffId:sel.staff,days:21,from,withTimes:true});
+  dayCache[key]=r.days||[];
+  horizon=r.horizon||horizon;
+  return dayCache[key];
+}
 function showErr(m){const e=$('#err');e.textContent=m||'';e.hidden=!m;if(m)e.scrollIntoView({block:'center'});}
 function txt(){document.querySelectorAll('[data-t]').forEach(e=>e.textContent=t(e.dataset.t));}
 const scrollTop=()=>window.scrollTo({top:0,behavior:'smooth'});
@@ -475,21 +510,28 @@ document.querySelectorAll('.langs button').forEach(b=>b.onclick=()=>{
 });
 
 /* ---------- start ---------- */
+function applyCfg(){
+  $('#salonName').textContent=cfg.salon.name;
+  $('#fSalon').textContent=cfg.salon.name;
+  $('#fSocial').textContent=cfg.salon.social||'';
+  $('#sAddr').textContent=cfg.salon.address||'';
+  const ph=cfg.salon.phone||'', tel=telHref(ph);
+  $('#sPhone').textContent=ph; $('#sPhone').href=tel;
+  $('#callBtn').href=tel;
+  $('#fPhoneLink').textContent=ph; $('#fPhoneLink').href=tel;
+  drawGallery();
+  render();
+}
+
 (async function(){
+  // a) có cấu hình cũ trong máy → vẽ ngay lập tức (0 giây)
+  const cached=SS.get('cfg',600);
+  if(cached){ cfg=cached; applyCfg(); }
   try{
     cfg=await api('getConfig');
-    $('#salonName').textContent=cfg.salon.name;
-    $('#fSalon').textContent=cfg.salon.name;
-    $('#fSocial').textContent=cfg.salon.social||'';
-    $('#sAddr').textContent=cfg.salon.address||'';
-    const ph=cfg.salon.phone||'';
-    const tel=telHref(ph);
-    $('#sPhone').textContent=ph; $('#sPhone').href=tel;
-    $('#callBtn').href=tel;
-    $('#fPhoneLink').textContent=ph; $('#fPhoneLink').href=tel;
-    drawGallery();
-    render();
-  }catch(e){ showErr(e.message); }
+    SS.set('cfg',cfg);
+    applyCfg();
+  }catch(e){ if(!cached) showErr(e.message); }
 })();
 
 /* ---------- galleri: 10 stilar (vektor, ingen upphovsrätt) ---------- */
@@ -560,7 +602,7 @@ function drawGallery(){
   gItems.forEach((it,i)=>{
     const b=document.createElement('button'); b.className='gcard';
     const media = it.photo
-      ? `<img src="${it.photo}" alt="${it.title}" loading="lazy">`
+      ? `<img src="${it.photo}" alt="" loading="lazy" decoding="async">`
       : nailSVG(it.design);
     b.innerHTML=`<div class="ph">${media}</div>`;
     const img=b.querySelector('img'); if(img) img.onerror=()=>b.remove();
@@ -714,11 +756,16 @@ function drawStaff(){
 /* ---------- dagar ---------- */
 async function loadDays(auto,from){
   stripFrom = from || stripFrom || todayISO();
-  $('#dates').innerHTML=`<div class="msg" style="width:100%">${t('loading')}</div>`;
+  const key=`${stripFrom}|${sel.svc.id}|${sel.staff}`;
+  if(dayCache[key]){                       // đã có sẵn → hiện ngay
+    days=dayCache[key]; drawDates();
+    if(auto){ const f=days.find(d=>d.count>0); if(f) pickDate(f.date); }
+    prefetchNext(); return;
+  }
+  $('#dates').innerHTML=`<div style="display:flex;gap:8px">${'<div class="sk sk-d"></div>'.repeat(6)}</div>`;
+  $('#times').innerHTML=`<div class="tlist">${'<div class="sk" style="height:44px"></div>'.repeat(9)}</div>`;
   try{
-    const r=await api('getDays',{serviceId:sel.svc.id,staffId:sel.staff,days:21,from:stripFrom,withTimes:true});
-    days=r.days||[];
-    horizon=r.horizon||'';
+    days=await getDaysCached(stripFrom);
     drawDates();
     if(auto){
       const first=days.find(d=>d.count>0);
@@ -729,15 +776,10 @@ async function loadDays(auto,from){
   }catch(e){ showErr(e.message); $('#dates').innerHTML=''; }
 }
 
-const nextCache={};
 async function prefetchNext(){
   const from=addDays(stripFrom,21);
-  const ck=`${from}|${sel.svc.id}|${sel.staff}`;
-  if(nextCache[ck]) return;
-  try{
-    const r=await api('getDays',{serviceId:sel.svc.id,staffId:sel.staff,days:21,from,withTimes:true});
-    nextCache[ck]=r.days||[];
-  }catch(e){}
+  if(dayCache[`${from}|${sel.svc.id}|${sel.staff}`]) return;
+  try{ await getDaysCached(from); }catch(e){}
 }
 
 function drawDates(){
@@ -763,12 +805,7 @@ function drawDates(){
 }
 
 $('#dPrev').onclick=()=>{ const f=addDays(stripFrom,-21); loadDays(false, f<todayISO()?todayISO():f); };
-$('#dNext').onclick=()=>{
-  const from=addDays(stripFrom,21);
-  const ck=`${from}|${sel.svc.id}|${sel.staff}`;
-  if(nextCache[ck]){ stripFrom=from; days=nextCache[ck]; drawDates(); prefetchNext(); return; }
-  loadDays(false, from);
-};
+$('#dNext').onclick=()=>{ loadDays(false, addDays(stripFrom,21)); };
 const addDays=(s,n)=>{ const d=new Date(s+'T12:00:00'); d.setDate(d.getDate()+n); return iso(d); };
 
 /* ---------- lịch tháng ---------- */
@@ -931,6 +968,7 @@ $('#next').onclick=async()=>{
       [t('rStaff'), b.staff],
       [t('rPrice'), b.price+' '+t('kr')]
     ].map(([k,v])=>`<div><span>${k}</span><b>${v}</b></div>`).join('');
+    Object.keys(dayCache).forEach(k=>delete dayCache[k]);
     step=4; render(); scrollTop();
   }catch(e){
     showErr(e.message);
