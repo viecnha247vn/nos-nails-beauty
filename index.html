@@ -461,7 +461,29 @@ const todayISO=()=>iso(new Date());
 const catColor=c=>CAT_COLOR[[...new Set(cfg.services.map(s=>s.category||''))].indexOf(c)%CAT_COLOR.length];
 const staffColor=id=>STAFF_COLOR[cfg.staff.findIndex(s=>s.id===id)%STAFF_COLOR.length]||'#6B6B6B';
 
+/* Đọc → qua lớp cache của Vercel (nhanh, ~50ms).
+   Ghi → đi thẳng Apps Script (không cache).
+   Nếu proxy trục trặc, tự động quay về gọi thẳng. */
+const PROXY='/api/gs';
+const READS=new Set(['bootstrap','getConfig','getDays','getSlots','ping']);
+let proxyOK=true;
+
 async function api(action,p={}){
+  if(proxyOK && READS.has(action)){
+    try{
+      const q=new URLSearchParams({action,...p});
+      const r=await fetch(`${PROXY}?${q}`,{method:'GET'});
+      if(r.ok){
+        const j=await r.json();
+        if(!j.success) throw new Error(j.error||'Fel');
+        return j.data;
+      }
+      proxyOK=false;                       // proxy hỏng → dùng đường trực tiếp
+    }catch(e){
+      if(/Fel|ledig|hittades|Ange/.test(e.message)) throw e;   // lỗi nghiệp vụ thì ném ra
+      proxyOK=false;
+    }
+  }
   const r=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
     body:JSON.stringify({action,...p})});
   const j=await r.json();
@@ -483,12 +505,53 @@ const SS={
 };
 const dayCache={};   // 'from|svc|staff' → days[]
 
-async function getDaysCached(from,force){
+let RULES=null, BUSY={};
+
+/* ---- Tính giờ trống trong máy khách: 0 request, ~1ms ---- */
+function computeDays(from,n=21){
+  if(!RULES||!sel.svc) return [];
+  const {step,buffer,lead,today,now,horizon:hz}=RULES;
+  const dur=sel.svc.minutes;
+
+  // thợ đủ điều kiện làm dịch vụ này
+  let staff=cfg.staff.filter(s=>s.services==='ALL'||s.services.includes(sel.svc.id));
+  if(sel.staff&&sel.staff!=='any') staff=staff.filter(s=>s.id===sel.staff);
+
+  const hours={}; cfg.hours.forEach(h=>hours[h.weekday]=h);
+  const out=[];
+  for(let i=0;i<n;i++){
+    const d=addDays(from,i);
+    const wd=new Date(d+'T12:00:00').getDay();
+    const h=hours[wd];
+    if(!h || d<today || (hz&&d>hz) || !staff.length){
+      out.push({date:d,count:0,times:[],closed:!h}); continue;
+    }
+    const open=hm2m(h.open), close=hm2m(h.close);
+    const earliest = d===today ? now+lead*60 : -1;
+
+    const busyOf=id=>[
+      ...(BUSY[id+'|'+d]||[]).map(([a,z])=>[a-buffer,z+buffer]),
+      ...(BUSY['ALLA|'+d]||[])
+    ];
+    const bs={}; staff.forEach(s=>bs[s.id]=busyOf(s.id));
+
+    const times=[];
+    for(let m=open;m+dur<=close;m+=step){
+      if(m<earliest) continue;
+      const free=staff.some(s=>bs[s.id].every(([a,z])=>m+dur<=a||m>=z));
+      if(free) times.push(m2hm(m));
+    }
+    out.push({date:d,count:times.length,times,closed:false});
+  }
+  return out;
+}
+const hm2m=t=>{const[a,b]=t.split(':').map(Number);return a*60+b;};
+const m2hm=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+
+async function getDaysCached(from){
   const key=`${from}|${sel.svc.id}|${sel.staff}`;
-  if(!force && dayCache[key]) return dayCache[key];
-  const r=await api('getDays',{serviceId:sel.svc.id,staffId:sel.staff,days:21,from,withTimes:true});
-  dayCache[key]=r.days||[];
-  horizon=r.horizon||horizon;
+  if(dayCache[key]) return dayCache[key];
+  dayCache[key]=computeDays(from,21);
   return dayCache[key];
 }
 function showErr(m){const e=$('#err');e.textContent=m||'';e.hidden=!m;if(m)e.scrollIntoView({block:'center'});}
@@ -523,19 +586,36 @@ function applyCfg(){
   render();
 }
 
+
+
 async function boot(){
-  // a) có cấu hình cũ trong máy → vẽ ngay lập tức (0 giây)
+  // a) còn bản cũ trong máy → vẽ ngay tức khắc (0 giây), rồi làm mới ngầm
   let cached=null;
-  try{ cached=SS.get('cfg',600); }catch(e){}
+  try{ cached=SS.get('boot',120); }catch(e){}
   if(cached){
-    try{ cfg=cached; applyCfg(); }
-    catch(e){ console.warn('cache trục trặc, bỏ qua',e); cfg=null; cached=null; }
+    try{ setBoot(cached); applyCfg(); }
+    catch(e){ cfg=null; cached=null; }
   }
   try{
-    cfg=await api('getConfig');
-    SS.set('cfg',cfg);
+    const b=await api('bootstrap');
+    SS.set('boot',b);
+    setBoot(b);
     applyCfg();
   }catch(e){ if(!cached) showErr(e.message); }
+}
+
+/* Nhận gói dữ liệu duy nhất từ server và dựng bảng tra cứu trong máy */
+function setBoot(b){
+  cfg={ salon:b.salon, services:b.services, staff:b.staff, hours:b.hours,
+        gallery:b.gallery, maxDaysAhead:999 };
+  RULES=b.rules;
+  horizon=b.rules.horizon;
+  BUSY={};                       // { 'staffId|date': [[từ,đến],...] }
+  (b.busy||[]).forEach(([sid,d,a,z])=>{
+    const k=sid+'|'+d;
+    (BUSY[k]=BUSY[k]||[]).push([a,z]);
+  });
+  Object.keys(dayCache).forEach(k=>delete dayCache[k]);
 }
 
 /* ---------- galleri: 10 stilar (vektor, ingen upphovsrätt) ---------- */
@@ -758,33 +838,19 @@ function drawStaff(){
 }
 
 /* ---------- dagar ---------- */
-async function loadDays(auto,from){
+function loadDays(auto,from){
   stripFrom = from || stripFrom || todayISO();
   const key=`${stripFrom}|${sel.svc.id}|${sel.staff}`;
-  if(dayCache[key]){                       // đã có sẵn → hiện ngay
-    days=dayCache[key]; drawDates();
-    if(auto){ const f=days.find(d=>d.count>0); if(f) pickDate(f.date); }
-    prefetchNext(); return;
+  days = dayCache[key] || (dayCache[key]=computeDays(stripFrom,21));
+  drawDates();
+  if(auto){
+    const first=days.find(d=>d.count>0);
+    if(first) pickDate(first.date);
+    else { slots=[]; $('#times').innerHTML=`<div class="msg">${t('noneAtAll')}</div>`; }
   }
-  $('#dates').innerHTML=`<div style="display:flex;gap:8px">${'<div class="sk sk-d"></div>'.repeat(6)}</div>`;
-  $('#times').innerHTML=`<div class="tlist">${'<div class="sk" style="height:44px"></div>'.repeat(9)}</div>`;
-  try{
-    days=await getDaysCached(stripFrom);
-    drawDates();
-    if(auto){
-      const first=days.find(d=>d.count>0);
-      if(first) pickDate(first.date);
-      else { slots=[]; $('#times').innerHTML=`<div class="msg">${t('noneAtAll')}</div>`; }
-    }
-    prefetchNext();
-  }catch(e){ showErr(e.message); $('#dates').innerHTML=''; }
 }
 
-async function prefetchNext(){
-  const from=addDays(stripFrom,21);
-  if(dayCache[`${from}|${sel.svc.id}|${sel.staff}`]) return;
-  try{ await getDaysCached(from); }catch(e){}
-}
+
 
 function drawDates(){
   if(step!==2||!days.length) return;
@@ -846,10 +912,8 @@ async function loadCal(){
   const ck=`${y}-${m}|${sel.svc.id}|${sel.staff}`;
   let data=calCache[ck];
   if(!data){
-    try{
-      const r=await api('getDays',{serviceId:sel.svc.id,staffId:sel.staff,from:from,days:last.getDate()});
-      data=r.days||[]; horizon=r.horizon||horizon; calCache[ck]=data;
-    }catch(e){ $('#cDays').innerHTML=`<span style="grid-column:span 7;color:var(--grey);text-align:center">${e.message}</span>`; return; }
+    data=computeDays(from,last.getDate());
+    calCache[ck]=data;
   }
   calDays=data;
   $('#cHorizon').textContent = horizon
@@ -876,24 +940,14 @@ async function loadCal(){
   }
 }
 
-async function pickDate(d){
-  const dd=days.find(x=>x.date===d);
-  if(dd && dd.count===0) return;
+function pickDate(d){
+  let dd=days.find(x=>x.date===d);
+  if(!dd) dd=computeDays(d,1)[0];
+  if(!dd || dd.count===0) return;
   sel.date=d; sel.time=null;
   drawQuick(); drawDates();
-
-  // Giờ trống đã tải sẵn cùng dải ngày → hiện ngay, không cần gọi server
-  if(dd && dd.times){
-    slots=dd.times.map(x=>({time:x}));
-    drawTimes(dd.closed); drawBar();
-    return;
-  }
-  $('#times').innerHTML=`<div class="msg">${t('loading')}</div>`;
-  try{
-    const r=await api('getSlots',{date:d,serviceId:sel.svc.id,staffId:sel.staff});
-    slots=r.slots||[]; drawTimes(r.closed); drawBar();
-    if(dd) dd.times=r.slots.map(x=>x.time);
-  }catch(e){ showErr(e.message); $('#times').innerHTML=''; }
+  slots=dd.times.map(x=>({time:x}));
+  drawTimes(dd.closed); drawBar();
 }
 
 /* ---------- tider ---------- */
@@ -973,7 +1027,9 @@ $('#next').onclick=async()=>{
       [t('rPrice'), b.price+' '+t('kr')]
     ].map(([k,v])=>`<div><span>${k}</span><b>${v}</b></div>`).join('');
     Object.keys(dayCache).forEach(k=>delete dayCache[k]);
+    Object.keys(calCache).forEach(k=>delete calCache[k]);
     step=4; render(); scrollTop();
+    api('bootstrap').then(nb=>{ SS.set('boot',nb); setBoot(nb); }).catch(()=>{});
   }catch(e){
     showErr(e.message);
     if(/ledig|available|trống/i.test(e.message)){ step=2; render(); loadDays(true); }
