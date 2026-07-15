@@ -535,8 +535,12 @@ function computeDays(from,n=21){
     ];
     const bs={}; staff.forEach(s=>bs[s.id]=busyOf(s.id));
 
+    // Khách chỉ chọn giờ CHẴN: 10:00, 11:00, 12:00…
+    // Bắt đầu từ giờ tròn đầu tiên >= giờ mở cửa.
+    const BOOK_STEP = 60;
+    const first = Math.ceil(open/60)*60;
     const times=[];
-    for(let m=open;m+dur<=close;m+=step){
+    for(let m=first;m+dur<=close;m+=BOOK_STEP){
       if(m<earliest) continue;
       const free=staff.some(s=>bs[s.id].every(([a,z])=>m+dur<=a||m>=z));
       if(free) times.push(m2hm(m));
