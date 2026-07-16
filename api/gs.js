@@ -18,7 +18,7 @@ const PUBLIC_READS = new Set(['bootstrap', 'getConfig', 'getDays', 'getSlots', '
 // ĐỌC của admin – chứa tên và số điện thoại khách.
 // Cache RẤT ngắn (8 giây) và chỉ dùng lại được nếu URL trùng hoàn toàn,
 // tức là cùng adminKey + cùng số phiên bản dữ liệu (tham số v).
-const ADMIN_READS = new Set(['adminLogin', 'adminDay', 'adminRange', 'adminServices', 'adminGallery', 'adminSlots']);
+const ADMIN_READS = new Set(['adminBoot', 'adminLogin', 'adminDay', 'adminRange', 'adminServices', 'adminGallery', 'adminSlots']);
 
 export const config = { runtime: 'edge' };
 
