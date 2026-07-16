@@ -301,7 +301,7 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
 <!-- APP -->
 <div id="app" hidden>
   <div class="top"><div class="wrap">
-    <div class="logo" id="salonName">N.O.S Nails Beauty Handen <small style="opacity:.6;font-size:11px;font-weight:400">v3.7</small></div>
+    <div class="logo" id="salonName">N.O.S Nails Beauty Handen <small style="opacity:.6;font-size:11px;font-weight:400">v3.8</small></div>
     <div class="langs"><button data-lang="sv" class="on">SV</button><button data-lang="vi">VI</button></div>
     <span class="sync" id="sync" title="Live"><i></i></span>
     <button class="btn ghost sm" id="logout" data-t="logout">Logga ut</button>
@@ -604,7 +604,7 @@ function staffColor(id){const i=cfg.staff.findIndex(x=>x.id===id);return i<0?'#7
    URL có kèm số phiên bản dữ liệu (v): ai vừa sửa gì là v đổi → cache cũ bị bỏ ngay.
    Ghi → đi thẳng, không bao giờ cache. */
 const PROXY='/api/gs';
-const READS=new Set(['adminLogin','adminDay','adminRange','adminServices','adminGallery','adminSlots','version']);
+const READS=new Set(['adminBoot','adminLogin','adminDay','adminRange','adminServices','adminGallery','adminSlots','version']);
 let proxyOK=true;
 
 let api=async function(action,p={}){
@@ -641,6 +641,12 @@ document.querySelectorAll('.langs button').forEach(b=>b.onclick=()=>{
 });
 
 /* ---------- login ---------- */
+/* Đánh thức backend ngay lập tức, không chờ gì cả.
+   Chạy song song với việc user đọc màn hình + gõ mật khẩu. */
+(function warmBackend(){
+  try{ fetch(`${PROXY}?action=ping&t=${Date.now()}`).catch(()=>{}); }catch(e){}
+})();
+
 $('#loginBtn').onclick=async()=>{
   key=$('#key').value.trim(); $('#loginErr').hidden=true;
   const cached=(()=>{ try{ const r=sessionStorage.getItem('nb_admin_cfg'); return r?JSON.parse(r):null; }catch(e){ return null; } })();
@@ -651,16 +657,24 @@ $('#loginBtn').onclick=async()=>{
     load();
   }
   try{
-    cfg=await api('adminLogin');
+    // MỘT chuyến đi: cấu hình + lịch hôm nay + phiên bản
+    const boot=await api('adminBoot',{date});
+    cfg=boot.cfg; myVer=boot.v; day=boot.day;
+    cache['day|'+date]={v:myVer,data:boot.day};   // nạp sẵn vào cache
     try{ sessionStorage.setItem('nb_admin_cfg',JSON.stringify(cfg)); }catch(e){}
     sessionStorage.setItem('nb_key',key);
     $('#login').hidden=true; $('#app').hidden=false;
     $('#salonName').textContent=cfg.salon.name;
     $('#datePick').value=date;
-    try{ myVer=(await api('version')).v; }catch(e){}
-    load();
+    paint();                     // vẽ ngay từ dữ liệu vừa nhận, KHÔNG gọi thêm
+    prefetchAround();            // ngày trước/sau tải ngầm
     startSync();
-  }catch(e){ $('#loginErr').textContent=e.message; $('#loginErr').hidden=false; }
+  }catch(e){
+    if(!cached){ $('#loginErr').textContent=e.message; $('#loginErr').hidden=false; }
+    else { try{ const b=await api('adminBoot',{date}); cfg=b.cfg; myVer=b.v;
+                cache['day|'+date]={v:b.v,data:b.day}; day=b.day; paint(); startSync(); }catch(_){}
+    }
+  }
 };
 $('#key').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#loginBtn').click(); });
 $('#logout').onclick=()=>{ sessionStorage.removeItem('nb_key'); location.reload(); };
