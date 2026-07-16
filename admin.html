@@ -301,7 +301,7 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
 <!-- APP -->
 <div id="app" hidden>
   <div class="top"><div class="wrap">
-    <div class="logo" id="salonName">N.O.S Nails Beauty Handen <small style="opacity:.6;font-size:11px;font-weight:400">v3.8</small></div>
+    <div class="logo" id="salonName">N.O.S Nails Beauty Handen <small style="opacity:.6;font-size:11px;font-weight:400">v3.9</small></div>
     <div class="langs"><button data-lang="sv" class="on">SV</button><button data-lang="vi">VI</button></div>
     <span class="sync" id="sync" title="Live"><i></i></span>
     <button class="btn ghost sm" id="logout" data-t="logout">Logga ut</button>
@@ -588,6 +588,8 @@ const WDS={sv:['Sön','Mån','Tis','Ons','Tor','Fre','Lör'],vi:['CN','T2','T3',
 const SWATCH=['#8C3A31','#C08457','#8FAE9B','#6E2C25','#B5674F','#3E2B27'];
 
 let myVer=null;
+const cache={};                    // 'day|2026-07-13' → {v, data}
+const inflight={};                 // chống gọi trùng cùng lúc
 let lang='sv', key='', cfg=null, view='day', dayMode='grid', svcData=null, editSvc=null, date=todayISO(), day=null, weekData=null, edit=null;
 
 const $=s=>document.querySelector(s);
@@ -658,22 +660,28 @@ $('#loginBtn').onclick=async()=>{
   }
   try{
     // MỘT chuyến đi: cấu hình + lịch hôm nay + phiên bản
-    const boot=await api('adminBoot',{date});
+    let boot;
+    try{
+      boot=await api('adminBoot',{date});
+    }catch(be){
+      // backend chưa deploy adminBoot → quay về cách cũ, vẫn đăng nhập được
+      const cfg2=await api('adminLogin');
+      let v=null; try{ v=(await api('version')).v; }catch(_){}
+      const d0=await api('adminDay',{date});
+      boot={cfg:cfg2, v, day:d0};
+    }
     cfg=boot.cfg; myVer=boot.v; day=boot.day;
-    cache['day|'+date]={v:myVer,data:boot.day};   // nạp sẵn vào cache
+    if(boot.day) cache['day|'+date]={v:myVer,data:boot.day};
     try{ sessionStorage.setItem('nb_admin_cfg',JSON.stringify(cfg)); }catch(e){}
     sessionStorage.setItem('nb_key',key);
     $('#login').hidden=true; $('#app').hidden=false;
     $('#salonName').textContent=cfg.salon.name;
     $('#datePick').value=date;
-    paint();                     // vẽ ngay từ dữ liệu vừa nhận, KHÔNG gọi thêm
-    prefetchAround();            // ngày trước/sau tải ngầm
+    if(boot.day) paint(); else load();
+    prefetchAround();
     startSync();
   }catch(e){
     if(!cached){ $('#loginErr').textContent=e.message; $('#loginErr').hidden=false; }
-    else { try{ const b=await api('adminBoot',{date}); cfg=b.cfg; myVer=b.v;
-                cache['day|'+date]={v:b.v,data:b.day}; day=b.day; paint(); startSync(); }catch(_){}
-    }
   }
 };
 $('#key').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#loginBtn').click(); });
@@ -1536,8 +1544,6 @@ document.addEventListener('keydown',e=>{
 });
 
 /* ================= CACHE + TẢI NGẦM ================= */
-const cache={};                    // 'day|2026-07-13' → {v, data}
-const inflight={};                 // chống gọi trùng cùng lúc
 
 function bar(on){ const b=$('#bar'); if(on){ b.classList.add('on'); b.style.width='70%'; }
   else { b.style.width='100%'; setTimeout(()=>{ b.classList.remove('on'); b.style.width='0'; },300); } }
