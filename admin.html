@@ -588,6 +588,17 @@ const WDS={sv:['Sön','Mån','Tis','Ons','Tor','Fre','Lör'],vi:['CN','T2','T3',
 const SWATCH=['#8C3A31','#C08457','#8FAE9B','#6E2C25','#B5674F','#3E2B27'];
 
 let myVer=null;
+
+/* ---------- bộ nhớ lâu dài trên máy ----------
+   Trước dùng sessionStorage: đóng tab là mất sạch, mỗi lần mở lại phải gõ mật
+   khẩu và chờ Apps Script trả về mới thấy gì. Đổi sang localStorage: mở máy
+   buổi sáng là vào thẳng, lịch hôm qua hiện ngay trong lúc dữ liệu mới đang tải. */
+const store={
+  get(k){ try{ const r=localStorage.getItem(k); return r?JSON.parse(r):null; }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} },
+  del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+};
+
 const cache={};                    // 'day|2026-07-13' → {v, data}
 const inflight={};                 // chống gọi trùng cùng lúc
 let lang='sv', key='', cfg=null, view='day', dayMode='grid', svcData=null, editSvc=null, date=todayISO(), day=null, weekData=null, edit=null;
@@ -614,6 +625,7 @@ let api=async function(action,p={}){
     try{
       const q=new URLSearchParams({action,key,...p});
       if(action!=='version' && myVer) q.set('v',myVer);   // mốc phiên bản → cache tự hết hạn
+      if(action==='adminSlots') q.set('_t',Date.now());   // giờ trống: luôn lấy tươi, không qua cache
       const r=await fetch(`${PROXY}?${q}`,{method:'GET'});
       if(r.ok){
         const j=await r.json();
@@ -646,17 +658,32 @@ document.querySelectorAll('.langs button').forEach(b=>b.onclick=()=>{
 /* Đánh thức backend ngay lập tức, không chờ gì cả.
    Chạy song song với việc user đọc màn hình + gõ mật khẩu. */
 (function warmBackend(){
+  // Chỉ đánh thức khi CHƯA có mật khẩu lưu sẵn. Nếu đã có, phần đăng nhập tự
+  // động ở dưới sẽ gọi adminBoot ngay — thêm ping ở đây chỉ làm Apps Script
+  // phải xử lý hai việc cùng lúc và adminBoot bị xếp hàng chờ.
+  if(store.get('nb_key')) return;
   try{ fetch(`${PROXY}?action=ping&t=${Date.now()}`).catch(()=>{}); }catch(e){}
 })();
 
 $('#loginBtn').onclick=async()=>{
   key=$('#key').value.trim(); $('#loginErr').hidden=true;
-  const cached=(()=>{ try{ const r=sessionStorage.getItem('nb_admin_cfg'); return r?JSON.parse(r):null; }catch(e){ return null; } })();
-  if(cached){                       // vẽ khung ngay, xác thực chạy ngầm
+
+  // ---- vẽ ngay từ bộ nhớ máy, không chờ mạng ----
+  // Quan trọng: KHÔNG gọi load() ở đây. Trước đây có gọi, nên lúc đăng nhập
+  // trang bắn adminDay và adminBoot cùng lúc; Apps Script chạy tuần tự nên
+  // cuộc gọi thứ hai phải xếp hàng → đăng nhập chậm gấp đôi. adminBoot đã
+  // trả về lịch của ngày hôm nay rồi, không cần hỏi lại.
+  const cached=store.get('nb_cfg');
+  const cachedDay=store.get('nb_day');
+  if(cached){
     cfg=cached;
     $('#login').hidden=true; $('#app').hidden=false;
+    $('#salonName').textContent=cfg.salon.name;
     $('#datePick').value=date;
-    load();
+    if(cachedDay && cachedDay.date===date){
+      day=cachedDay; paint();
+      document.querySelector('.wrap').classList.add('stale');   // mờ nhẹ: đang chờ bản mới
+    }
   }
   try{
     // MỘT chuyến đi: cấu hình + lịch hôm nay + phiên bản
@@ -672,8 +699,10 @@ $('#loginBtn').onclick=async()=>{
     }
     cfg=boot.cfg; myVer=boot.v; day=boot.day;
     if(boot.day) cache['day|'+date]={v:myVer,data:boot.day};
-    try{ sessionStorage.setItem('nb_admin_cfg',JSON.stringify(cfg)); }catch(e){}
-    sessionStorage.setItem('nb_key',key);
+    store.set('nb_cfg',cfg);
+    if(boot.day) store.set('nb_day',boot.day);
+    store.set('nb_key',key);
+    document.querySelector('.wrap').classList.remove('stale');
     $('#login').hidden=true; $('#app').hidden=false;
     $('#salonName').textContent=cfg.salon.name;
     $('#datePick').value=date;
@@ -685,8 +714,13 @@ $('#loginBtn').onclick=async()=>{
   }
 };
 $('#key').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#loginBtn').click(); });
-$('#logout').onclick=()=>{ sessionStorage.removeItem('nb_key'); location.reload(); };
-(function(){const k=sessionStorage.getItem('nb_key'); if(k){$('#key').value=k; $('#loginBtn').click();}})();
+$('#logout').onclick=()=>{ store.del('nb_key'); store.del('nb_cfg'); store.del('nb_day'); location.reload(); };
+
+// Đăng nhập tự động: có mật khẩu lưu là vào thẳng, không hiện màn hình đăng nhập.
+(function(){
+  const k=store.get('nb_key') || sessionStorage.getItem('nb_key');   // đọc cả kiểu cũ
+  if(k){ $('#key').value=k; $('#loginBtn').click(); }
+})();
 
 /* ---------- vy + navigering ---------- */
 $('#tabDay').onclick =()=>{ view='day';  syncTabs(); load(); };
@@ -731,6 +765,7 @@ async function load(){
       day=await fetchDay(date);
       document.querySelector('.wrap').classList.remove('stale');
       paint(); prefetchAround();
+      if(date===todayISO()) store.set('nb_day',day);   // ảnh chụp hôm nay, cho lần mở sau
     }
     else if(view==='week'){
       const from=monday(date), to=addDays(from,6), k='rng|'+from+'|'+to, hit=cache[k];
