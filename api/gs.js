@@ -28,7 +28,7 @@ export default async function handler(req) {
 
   const cors = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Key',
+    'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
   };
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
@@ -40,16 +40,7 @@ export default async function handler(req) {
     const isAdmin  = req.method === 'GET' && ADMIN_READS.has(action);
 
     if (isPublic || isAdmin) {
-      // Mật khẩu admin đến từ header, không từ URL. Ghép lại vào URL gửi lên
-      // Apps Script (backend vẫn nhận ?key= như cũ, không phải sửa gì bên đó).
-      const qs = new URLSearchParams(url.searchParams);
-      if (isAdmin) {
-        const hdrKey = req.headers.get('x-admin-key') || '';
-        if (hdrKey) qs.set('key', hdrKey);
-      }
-      qs.delete('_t');   // chỉ dùng để phá cache ở phía trình duyệt
-
-      upstream = await fetch(GAS_URL + '?' + qs.toString(), { redirect: 'follow' });
+      upstream = await fetch(GAS_URL + '?' + url.searchParams.toString(), { redirect: 'follow' });
       const body = await upstream.text();
 
       // Nếu Apps Script báo lỗi (sai adminKey chẳng hạn) → tuyệt đối không cache
@@ -58,20 +49,26 @@ export default async function handler(req) {
 
       // Quy tắc cache — thứ tự quan trọng:
       //
-      // 1. Lỗi  → không bao giờ cache.
-      // 2. Admin → không bao giờ cache. Vì mật khẩu đã ra khỏi URL, khoá cache
-      //    không còn phân biệt được người có mật khẩu và người không. Nếu vẫn
-      //    cache thì bất kỳ ai gọi đúng URL cũng nhận được tên và số điện thoại
-      //    khách. Trang admin đã có cache riêng trong bộ nhớ + đồng bộ theo
-      //    phiên bản, nên bỏ cache ở đây gần như không ảnh hưởng tốc độ.
-      // 3. getSlots (giờ trống cho khách) → 5 giây. Trước là 20 giây, đủ lâu để
+      // 1. Lỗi → không bao giờ cache.
+      // 2. adminSlots → không bao giờ cache. Đây là thứ quyết định giờ trống;
+      //    cache 8 giây từng làm admin thấy "Inga lediga tider" dù còn chỗ.
+      // 3. adminBoot → 30 giây. Đây là cuộc gọi lúc đăng nhập. URL lúc này chưa
+      //    có tham số v, nên nhiều lần đăng nhập dùng chung một khoá cache →
+      //    lần thứ 2 trở đi vào thẳng, không phải chờ Apps Script.
+      //    Nếu có gì đổi trong 30 giây đó, vòng đồng bộ theo phiên bản sẽ tự bắt.
+      // 4. Admin khác → 8 giây, khoá cache có kèm adminKey + số phiên bản v.
+      // 5. getSlots (giờ trống cho khách) → 5 giây. Trước là 20 giây, đủ lâu để
       //    hai khách cùng thấy một khung giờ trống và cùng điền hết form.
-      // 4. Còn lại (cấu hình, bảng giá, ảnh) → 20 giây như cũ.
+      // 6. version → 5 giây, để vòng đồng bộ phát hiện thay đổi nhanh hơn.
+      // 7. Còn lại (cấu hình, bảng giá, ảnh) → 20 giây.
       let cc;
-      if (!okBody)                    cc = 'no-store';
-      else if (isAdmin)               cc = 'no-store';
-      else if (action === 'getSlots') cc = 'public, s-maxage=5, stale-while-revalidate=10';
-      else                            cc = 'public, s-maxage=20, stale-while-revalidate=300';
+      if (!okBody)                     cc = 'no-store';
+      else if (action === 'adminSlots')cc = 'no-store';
+      else if (action === 'adminBoot') cc = 'public, s-maxage=30, stale-while-revalidate=60';
+      else if (isAdmin)                cc = 'public, s-maxage=8, stale-while-revalidate=20';
+      else if (action === 'getSlots')  cc = 'public, s-maxage=5, stale-while-revalidate=10';
+      else if (action === 'version')   cc = 'public, s-maxage=5,  stale-while-revalidate=10';
+      else                             cc = 'public, s-maxage=20, stale-while-revalidate=300';
 
       return new Response(body, {
         status: upstream.status,
@@ -80,8 +77,7 @@ export default async function handler(req) {
           'Content-Type': 'application/json; charset=utf-8',
           'Cache-Control': cc,
           'CDN-Cache-Control': cc,
-          'X-Cache-Layer': 'vercel-edge',
-          'Vary': 'X-Admin-Key'
+          'X-Cache-Layer': 'vercel-edge'
         }
       });
     }
