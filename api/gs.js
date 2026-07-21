@@ -28,7 +28,7 @@ export default async function handler(req) {
 
   const cors = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Key',
     'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
   };
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
@@ -40,21 +40,38 @@ export default async function handler(req) {
     const isAdmin  = req.method === 'GET' && ADMIN_READS.has(action);
 
     if (isPublic || isAdmin) {
-      upstream = await fetch(GAS_URL + '?' + url.searchParams.toString(), { redirect: 'follow' });
+      // Mật khẩu admin đến từ header, không từ URL. Ghép lại vào URL gửi lên
+      // Apps Script (backend vẫn nhận ?key= như cũ, không phải sửa gì bên đó).
+      const qs = new URLSearchParams(url.searchParams);
+      if (isAdmin) {
+        const hdrKey = req.headers.get('x-admin-key') || '';
+        if (hdrKey) qs.set('key', hdrKey);
+      }
+      qs.delete('_t');   // chỉ dùng để phá cache ở phía trình duyệt
+
+      upstream = await fetch(GAS_URL + '?' + qs.toString(), { redirect: 'follow' });
       const body = await upstream.text();
 
       // Nếu Apps Script báo lỗi (sai adminKey chẳng hạn) → tuyệt đối không cache
       let okBody = true;
       try { okBody = JSON.parse(body).success !== false; } catch (_) { okBody = false; }
 
-      const cc = !okBody
-        ? 'no-store'
-        : isAdmin
-          // Admin: 8 giây. URL đã chứa số phiên bản (v), nên vừa có ai sửa gì
-          // là URL đổi → cache cũ không bao giờ được dùng lại.
-          ? 'public, s-maxage=8, stale-while-revalidate=20'
-          // Công khai: 20 giây tươi, 5 phút vẫn trả ngay bản cũ rồi làm mới ngầm.
-          : 'public, s-maxage=20, stale-while-revalidate=300';
+      // Quy tắc cache — thứ tự quan trọng:
+      //
+      // 1. Lỗi  → không bao giờ cache.
+      // 2. Admin → không bao giờ cache. Vì mật khẩu đã ra khỏi URL, khoá cache
+      //    không còn phân biệt được người có mật khẩu và người không. Nếu vẫn
+      //    cache thì bất kỳ ai gọi đúng URL cũng nhận được tên và số điện thoại
+      //    khách. Trang admin đã có cache riêng trong bộ nhớ + đồng bộ theo
+      //    phiên bản, nên bỏ cache ở đây gần như không ảnh hưởng tốc độ.
+      // 3. getSlots (giờ trống cho khách) → 5 giây. Trước là 20 giây, đủ lâu để
+      //    hai khách cùng thấy một khung giờ trống và cùng điền hết form.
+      // 4. Còn lại (cấu hình, bảng giá, ảnh) → 20 giây như cũ.
+      let cc;
+      if (!okBody)                    cc = 'no-store';
+      else if (isAdmin)               cc = 'no-store';
+      else if (action === 'getSlots') cc = 'public, s-maxage=5, stale-while-revalidate=10';
+      else                            cc = 'public, s-maxage=20, stale-while-revalidate=300';
 
       return new Response(body, {
         status: upstream.status,
@@ -63,7 +80,8 @@ export default async function handler(req) {
           'Content-Type': 'application/json; charset=utf-8',
           'Cache-Control': cc,
           'CDN-Cache-Control': cc,
-          'X-Cache-Layer': 'vercel-edge'
+          'X-Cache-Layer': 'vercel-edge',
+          'Vary': 'X-Admin-Key'
         }
       });
     }
