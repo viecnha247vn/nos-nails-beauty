@@ -620,6 +620,28 @@ const PROXY='/api/gs';
 const READS=new Set(['adminBoot','adminLogin','adminDay','adminRange','adminServices','adminGallery','adminSlots','version']);
 let proxyOK=true;
 
+/* ================= HOIST: bắn cuộc gọi chậm nhất NGAY LẬP TỨC =================
+   adminBoot (~1–2s lần đầu trong ngày, do Apps Script) là nút thắt duy nhất
+   đáng kể. Trước đây nó chỉ khởi động SAU khi cả script parse xong + màn hình
+   đăng nhập tự bấm nút + handler chạy — tức 200–400ms lãng phí xếp trước nó.
+
+   Ở đây ta bắn nó ngay khoảnh khắc script chạy tới dòng này, dùng mật khẩu đã
+   lưu, rồi cất promise lại. Cuộc gọi mạng chậm chạy SONG SONG với: phần script
+   còn lại đang parse + màn hình đang vẽ từ đĩa. Handler đăng nhập bên dưới chỉ
+   việc chờ promise đã bay sẵn, không gọi lại. Đây là cách sớm nhất về mặt vật
+   lý mà trình duyệt có thể bắt đầu chuyến đi tới Google. */
+let bootPromise=null;
+(function hoistBoot(){
+  let k=null;
+  try{ k=JSON.parse(localStorage.getItem('nb_key')||'null'); }catch(e){}
+  if(!k) return;
+  const d=todayISO();
+  bootPromise=fetch(`${PROXY}?action=adminBoot&key=${encodeURIComponent(k)}&date=${d}`)
+    .then(r=>r.ok?r.json():null)
+    .then(j=>(j&&j.success)?{data:j.data,date:d}:null)
+    .catch(()=>null);
+})();
+
 let api=async function(action,p={}){
   if(proxyOK && READS.has(action)){
     try{
@@ -689,7 +711,12 @@ $('#loginBtn').onclick=async()=>{
     // MỘT chuyến đi: cấu hình + lịch hôm nay + phiên bản
     let boot;
     try{
-      boot=await api('adminBoot',{date});
+      // Nếu promise đã bay sẵn từ đầu trang và đúng ngày → dùng luôn, khỏi gọi lại.
+      if(bootPromise){
+        const pre=await bootPromise; bootPromise=null;
+        if(pre && pre.date===date){ boot=pre.data; }
+      }
+      if(!boot) boot=await api('adminBoot',{date});
     }catch(be){
       // backend chưa deploy adminBoot → quay về cách cũ, vẫn đăng nhập được
       const cfg2=await api('adminLogin');
