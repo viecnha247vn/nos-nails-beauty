@@ -314,14 +314,10 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
       <button class="btn line sm" id="todayBtn" data-t="today">Idag</button>
       <input type="date" id="datePick" style="width:auto">
       <button class="btn line sm" id="refBtn" title="Rensa cache" data-t="refresh">↻</button>
-      <div class="vtabs" id="vtabs">
-        <button id="vList" data-t="vList">Lista</button>
-        <button id="vCols" class="on" data-t="vCols">Per tekniker</button>
-      </div>
     </div>
 
-    <div class="list" id="list" hidden></div>
-    <div class="cols" id="cols" hidden></div>
+    <p class="ghint" id="gHint" data-t="gridHint">Dra bokningar och spärrar mellan tekniker/tider (endast dator). Dra i kanten för att ändra längd.</p>
+    <div class="grid" id="grid"></div>
 
   </div>
 
@@ -567,7 +563,7 @@ const store={
 
 const cache={};                    // 'day|2026-07-13' → {v, data}
 const inflight={};                 // chống gọi trùng cùng lúc
-let lang='sv', key='', cfg=null, view='day', dayMode='cols', svcData=null, editSvc=null, date=todayISO(), day=null, weekData=null, edit=null;
+let lang='sv', key='', cfg=null, view='day', dayMode='grid', svcData=null, editSvc=null, date=todayISO(), day=null, weekData=null, edit=null;
 
 const $=s=>document.querySelector(s);
 const t=k=>T[lang][k]||T.sv[k]||k;
@@ -775,14 +771,7 @@ $('#logout').onclick=()=>{ store.del('nb_key'); store.del('nb_cfg'); store.del('
 })();
 
 /* ---------- vy + navigering ---------- */
-function syncTabs(){
-  $('#vList').classList.toggle('on',dayMode==='list');
-  $('#vCols').classList.toggle('on',dayMode==='cols');
-  $('#list').hidden = dayMode!=='list';
-  $('#cols').hidden = dayMode!=='cols';
-}
-$('#vList').onclick=()=>{ dayMode='list'; paint(); };
-$('#vCols').onclick=()=>{ dayMode='cols'; paint(); };
+function syncTabs(){ /* chỉ còn Schema, không cần chuyển kiểu xem */ }
 
 function statusPill(st){
   const s=String(st||'').toLowerCase();
@@ -802,7 +791,7 @@ async function load(){
     document.querySelector('.wrap').classList.remove('stale');
     paint(); prefetchAround();
     if(date===todayISO()) store.set('nb_day',day);
-  }catch(e){ $('#cols').innerHTML='<p class="none">'+e.message+'</p>'; bar(false); }
+  }catch(e){ $('#grid').innerHTML='<p class="none" style="padding:20px;text-align:center">'+e.message+'</p>'; bar(false); }
 }
 
 /* ---------- rita ---------- */
@@ -940,50 +929,7 @@ function paintDay(){
   const d=new Date(day.date+'T12:00:00');
   $('#tTitle').textContent=d.toLocaleDateString(locale(),{day:'numeric',month:'long'});
   $('#tSub').textContent=WD[lang][d.getDay()];
-  paintList();
-
-  const box=$('#cols'); box.innerHTML='';
-  // Mỗi thợ một cột, luôn nằm ngang. 3 thợ → 3 cột; tự đúng nếu thêm/bớt thợ.
-  // minmax(220px,1fr): màn rộng thì các cột chia đều, màn hẹp thì kéo ngang được.
-  box.style.gridTemplateColumns='repeat('+Math.max(cfg.staff.length,1)+',minmax(220px,1fr))';
-  const salonBlocks=day.blocks.filter(b=>b.staffId.toUpperCase()==='ALLA');
-  cfg.staff.forEach((st,i)=>{
-    const mine=day.bookings.filter(b=>b.staffId===st.id && b.status.toLowerCase()!=='avbokad');
-    const act=mine;
-    const blocks=day.blocks.filter(b=>b.staffId===st.id).concat(salonBlocks);
-    const col=document.createElement('div'); col.className='col';
-    col.innerHTML=`<h3><span class="dot" style="background:${SWATCH[i%SWATCH.length]}"></span>${st.name}
-      <small>${act.length} · ${act.reduce((s,b)=>s+b.price,0)} kr</small></h3>`;
-
-    const items=[]
-      .concat(mine.map(b=>({sort:b.time,type:'bk',b})))
-      .concat(blocks.map(b=>({sort:b.start,type:'blk',b})))
-      .sort((a,c)=>a.sort<c.sort?-1:1);
-
-    if(!items.length) col.innerHTML+=`<p class="none">${t('none')}</p>`;
-    items.forEach(it=>{
-      if(it.type==='bk'){
-        const b=it.b, s=b.status.toLowerCase();
-        const cls=s==='avbokad'?'avbokad':s==='klar'?'klar':s==='no-show'?'noshow':'';
-        const el=document.createElement('button'); el.className='bk '+cls;
-        el.innerHTML=`<div class="r1"><span>${b.time}–${b.end}</span><em>${b.price} kr</em></div>
-          <div class="r2">${b.service}</div>
-          <div class="r3"><span>${b.customer||''}${b.phone?' · '+b.phone:''}</span><span>${b.status}</span></div>`;
-        el.onclick=()=>openBooking(b);
-        col.appendChild(el);
-      }else{
-        const b=it.b;
-        const el=document.createElement('div'); el.className='blk';
-        const all=b.staffId.toUpperCase()==='ALLA';
-        el.innerHTML=`<b>${b.start}–${b.end}</b> ${b.reason||''}${all?' ('+t('allStaff')+')':''}`;
-        const x=document.createElement('button'); x.className='x'; x.textContent='×';
-        x.onclick=()=>delBlock(b.id);
-        el.appendChild(x);
-        col.appendChild(el);
-      }
-    });
-    box.appendChild(col);
-  });
+  paintGrid();
 }
 
 /* ================= SCHEMA 15 MIN + DRA & SLÄPP ================= */
@@ -1353,48 +1299,6 @@ function makeBlockDraggable(el,b){
     },
     save:hit=>api('adminBlockUpdate',{id:b.id,staffId:hit.staffId,date:day.date,
       start:hit.time,end:toHM(hit.min+dur)})
-  });
-}
-
-function paintList(){
-  const box=$('#list'); box.innerHTML='';
-  const items=[]
-    .concat(day.bookings.filter(b=>String(b.status).toLowerCase()!=='avbokad').map(b=>({sort:b.time,type:'bk',b})))
-    .concat(day.blocks.map(b=>({sort:b.start,type:'blk',b})))
-    .sort((a,c)=>a.sort<c.sort?-1:1);
-
-  if(!items.length){ box.innerHTML=`<p class="none">${t('none')}</p>`; return; }
-
-  items.forEach(it=>{
-    if(it.type==='bk'){
-      const b=it.b, st=String(b.status).toLowerCase();
-      const el=document.createElement('button');
-      el.className='li'+(st==='avbokad'?' avbokad':'');
-      el.innerHTML=`
-        <div class="clock"><b>${b.time}</b><small>${b.end}</small></div>
-        <div class="body">
-          <span class="svc">${b.service}</span>
-          <span class="cust">${b.customer||'–'}${b.phone?' · <a href="tel:'+String(b.phone).replace(/\s/g,'')+'">'+b.phone+'</a>':''}</span>
-          <span class="who"><i class="dot" style="background:${staffColor(b.staffId)}"></i>${b.staff} · ${b.minutes} min${b.note?' · '+b.note:''}</span>
-        </div>
-        <div class="right"><span class="price">${b.price} kr</span>${statusPill(b.status)}</div>`;
-      el.querySelectorAll('a').forEach(a=>a.onclick=e=>e.stopPropagation());
-      el.onclick=()=>openBooking(b);
-      box.appendChild(el);
-    }else{
-      const b=it.b, all=b.staffId.toUpperCase()==='ALLA';
-      const el=document.createElement('div');
-      el.className='li blkli';
-      el.innerHTML=`
-        <div class="clock"><b>${b.start}</b><small>${b.end}</small></div>
-        <div class="body">
-          <span class="svc">${b.reason||'Spärrad'}</span>
-          <span class="who"><i class="dot" style="background:${all?'#8A7A76':staffColor(b.staffId)}"></i>${all?t('allStaff'):staffName(b.staffId)}</span>
-        </div>
-        <div class="right"><button class="del" title="×">×</button></div>`;
-      el.querySelector('.del').onclick=()=>delBlock(b.id);
-      box.appendChild(el);
-    }
   });
 }
 
