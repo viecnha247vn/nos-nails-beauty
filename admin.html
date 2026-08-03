@@ -687,66 +687,95 @@ document.querySelectorAll('.langs button').forEach(b=>b.onclick=()=>{
   try{ fetch(`${PROXY}?action=ping&t=${Date.now()}`).catch(()=>{}); }catch(e){}
 })();
 
-$('#loginBtn').onclick=async()=>{
-  key=$('#key').value.trim(); $('#loginErr').hidden=true;
+/* ================= ĐĂNG NHẬP LOCAL-FIRST =================
+   Ý tưởng khác hẳn ba lần trước: KHÔNG tối ưu cuộc gọi mạng nữa, mà bỏ nó ra
+   khỏi đường vào panel. Với máy đã từng đăng nhập, "đăng nhập" chỉ còn là so
+   sánh mật khẩu trong máy + đọc ảnh chụp trong máy — dưới 1 mili-giây, không
+   chạm mạng. Dữ liệu mới làm mới ngầm. Apps Script chậm hay lỗi cũng không còn
+   chặn anh vào được nữa. Đây là tốc độ nhanh nhất có thể về mặt vật lý. */
 
-  // ---- vẽ ngay từ bộ nhớ máy, không chờ mạng ----
-  // Quan trọng: KHÔNG gọi load() ở đây. Trước đây có gọi, nên lúc đăng nhập
-  // trang bắn adminDay và adminBoot cùng lúc; Apps Script chạy tuần tự nên
-  // cuộc gọi thứ hai phải xếp hàng → đăng nhập chậm gấp đôi. adminBoot đã
-  // trả về lịch của ngày hôm nay rồi, không cần hỏi lại.
-  const cached=store.get('nb_cfg');
-  const cachedDay=store.get('nb_day');
-  if(cached){
-    cfg=cached;
-    $('#login').hidden=true; $('#app').hidden=false;
-    $('#salonName').textContent=cfg.salon.name;
-    $('#datePick').value=date;
-    if(cachedDay && cachedDay.date===date){
-      day=cachedDay; paint();
-      document.querySelector('.wrap').classList.add('stale');   // mờ nhẹ: đang chờ bản mới
-    }
+function openPanel(c){
+  cfg=c;
+  $('#login').hidden=true; $('#app').hidden=false;
+  $('#salonName').textContent=cfg.salon.name;
+  $('#datePick').value=date;
+  const cd=store.get('nb_day');
+  if(cd && cd.date===date){ day=cd; paint(); }
+}
+
+function applyBoot(boot){
+  cfg=boot.cfg; myVer=boot.v; day=boot.day;
+  if(boot.day) cache['day|'+date]={v:myVer,data:boot.day};
+  store.set('nb_cfg',cfg);
+  if(boot.day) store.set('nb_day',{...boot.day,date});
+  store.set('nb_key',key);
+  document.querySelector('.wrap').classList.remove('stale');
+}
+
+/* Lấy dữ liệu boot: ưu tiên promise đã bay sẵn từ đầu trang (hoist).
+   MỘT cuộc gọi. KHÔNG còn chuỗi dự phòng 4 lần gọi tuần tự — đó chính là quả
+   bom trễ khiến "không đăng nhập được": khi adminBoot lỗi, code cũ gọi thêm
+   adminLogin + version + adminDay nối đuôi nhau, mỗi cái 1–2 giây. */
+async function getBoot(d){
+  if(bootPromise){
+    const pre=await bootPromise; bootPromise=null;
+    if(pre && pre.date===d) return pre.data;
   }
+  return await api('adminBoot',{date:d});
+}
+
+/* Làm mới ngầm — không bao giờ chặn, không bao giờ đá người dùng ra ngoài. */
+async function refresh(){
+  document.querySelector('.wrap').classList.add('stale');
   try{
-    // MỘT chuyến đi: cấu hình + lịch hôm nay + phiên bản
-    let boot;
-    try{
-      // Nếu promise đã bay sẵn từ đầu trang và đúng ngày → dùng luôn, khỏi gọi lại.
-      if(bootPromise){
-        const pre=await bootPromise; bootPromise=null;
-        if(pre && pre.date===date){ boot=pre.data; }
-      }
-      if(!boot) boot=await api('adminBoot',{date});
-    }catch(be){
-      // backend chưa deploy adminBoot → quay về cách cũ, vẫn đăng nhập được
-      const cfg2=await api('adminLogin');
-      let v=null; try{ v=(await api('version')).v; }catch(_){}
-      const d0=await api('adminDay',{date});
-      boot={cfg:cfg2, v, day:d0};
-    }
-    cfg=boot.cfg; myVer=boot.v; day=boot.day;
-    if(boot.day) cache['day|'+date]={v:myVer,data:boot.day};
-    store.set('nb_cfg',cfg);
-    if(boot.day) store.set('nb_day',boot.day);
-    store.set('nb_key',key);
-    document.querySelector('.wrap').classList.remove('stale');
-    $('#login').hidden=true; $('#app').hidden=false;
-    $('#salonName').textContent=cfg.salon.name;
-    $('#datePick').value=date;
-    if(boot.day) paint(); else load();
-    prefetchAround();
-    startSync();
+    const boot=await getBoot(date);
+    applyBoot(boot);
+    if(boot.day) paint();
+    prefetchAround(); startSync();
   }catch(e){
-    if(!cached){ $('#loginErr').textContent=e.message; $('#loginErr').hidden=false; }
+    document.querySelector('.wrap').classList.remove('stale');
+    try{ toast('Kunde inte uppdatera – visar senast sparade',true); }catch(_){}
   }
-};
-$('#key').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#loginBtn').click(); });
+}
+
+$('#loginBtn').onclick=async()=>{
+  const entered=$('#key').value.trim();
+  $('#loginErr').hidden=true;
+  const savedKey=store.get('nb_key');
+  const snap=store.get('nb_cfg');
+
+  // ĐƯỜNG NHANH: mật khẩu khớp lần trước + có ảnh chụp → vào thẳng, không chờ mạng.
+  if(entered && entered===savedKey && snap){
+    key=entered;
+    openPanel(snap);
+    refresh();                 // không await → chạy ngầm
+    return;
+  }
+
+  // ĐƯỜNG CHẬM (chỉ khi máy mới / đổi mật khẩu): bắt buộc hỏi server MỘT lần.
+  key=entered;
+  const btn=$('#loginBtn'); const label=btn.textContent;
+  btn.disabled=true; btn.textContent='…';
+  try{
+    const boot=await getBoot(date);
+    applyBoot(boot);
+    openPanel(cfg);
+    if(boot.day) paint(); else load();
+    prefetchAround(); startSync();
+  }catch(e){
+    $('#loginErr').textContent=e.message||'Kunde inte logga in'; $('#loginErr').hidden=false;
+  }finally{
+    btn.disabled=false; btn.textContent=label;
+  }
+};$('#key').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#loginBtn').click(); });
 $('#logout').onclick=()=>{ store.del('nb_key'); store.del('nb_cfg'); store.del('nb_day'); location.reload(); };
 
 // Đăng nhập tự động: có mật khẩu lưu là vào thẳng, không hiện màn hình đăng nhập.
 (function(){
   const k=store.get('nb_key') || sessionStorage.getItem('nb_key');   // đọc cả kiểu cũ
-  if(k){ $('#key').value=k; $('#loginBtn').click(); }
+  if(!k) return;
+  $('#key').value=k;
+  $('#loginBtn').click();   // có ảnh chụp → đi đường nhanh, vào tức thì
 })();
 
 /* ---------- vy + navigering ---------- */
