@@ -745,11 +745,15 @@ async function refresh(){
   try{
     const boot=await getBoot(date);
     applyBoot(boot);
-    if(boot.day) paint();
+    if(!day && view==='day') day=await fetchDay(date);   // nhánh adminDay hụt → lấy lại
+    document.querySelector('.wrap').classList.remove('stale');
+    paint();                                             // LUÔN vẽ, không bỏ trắng
     prefetchAround(); startSync();
+    if(day && date===todayISO()) store.set('nb_day',day);
   }catch(e){
     document.querySelector('.wrap').classList.remove('stale');
-    try{ toast('Kunde inte uppdatera – visar senast sparade',true); }catch(_){}
+    paint();
+    if(day){ try{ toast('Kunde inte uppdatera – visar senast sparade',true); }catch(_){} }
   }
 }
 
@@ -856,9 +860,31 @@ async function load(){
 /* ---------- rita ---------- */
 function paint(){
   txt(); syncTabs();
-  if(view==='day') paintDay();
-  else if(view==='week') paintWeek();
-  else paintServices();
+  try{
+    if(view==='day') paintDay();
+    else if(view==='week') paintWeek();
+    else paintServices();
+  }catch(e){
+    if(view==='day') showGridState(e && e.message);
+    else try{ toast((e&&e.message)||'Fel',true); }catch(_){}
+  }
+}
+
+/* Thay cho màn trắng: đang tải → "Đang tải…"; hỏng/thiếu dữ liệu → lời nhắn + nút Thử lại. */
+function showGridState(msg){
+  const box=$('#grid'); if(!box) return;
+  const vi = lang==='vi';
+  if(!msg && inflight['day|'+date]){
+    box.innerHTML='<p class="none" style="padding:28px;text-align:center">'+(vi?'Đang tải…':'Laddar…')+'</p>';
+    return;
+  }
+  const line = msg || (vi
+    ? 'Không tải được lịch. Kiểm tra mạng rồi thử lại.'
+    : 'Kunde inte ladda schemat. Kontrollera nätet och försök igen.');
+  box.innerHTML='<div style="padding:36px 16px;text-align:center;color:var(--muted)">'
+    +'<p style="margin-bottom:14px">'+line+'</p>'
+    +'<button class="btn" id="gridRetry">'+(vi?'Thử lại':'Försök igen')+'</button></div>';
+  const b=$('#gridRetry'); if(b) b.onclick=()=>{ document.querySelector('.wrap').classList.add('stale'); load(); };
 }
 
 /* ---------- tjänster ---------- */
@@ -988,7 +1014,7 @@ $('#sDel').onclick=async()=>{
 
 
 function paintDay(){
-  if(!day) return;
+  if(!day){ showGridState(); return; }
   const d=new Date(day.date+'T12:00:00');
   $('#tTitle').textContent=d.toLocaleDateString(locale(),{day:'numeric',month:'long'});
   $('#tSub').textContent=WD[lang][d.getDay()];
@@ -1083,6 +1109,7 @@ function syncTopH(){
 window.addEventListener('resize',syncTopH);
 
 function paintGrid(){
+  if(!cfg || !cfg.staff || !cfg.staff.length){ showGridState(); return; }
   syncTopH();
   $('#gHint').textContent = MOUSE ? t('gridHint') : t('gridHintTouch');
   const box=$('#grid'); box.innerHTML='';
@@ -1690,7 +1717,7 @@ async function fetchDay(d,{silent}={}){
     if(!silent) bar(true);
     try{
       const r=await api('adminDay',{date:d});
-      cache[k]={v:myVer,data:r};
+      if(r) cache[k]={v:myVer,data:r};   // chỉ cache khi có dữ liệu thật
       return r;
     } finally { delete inflight[k]; if(!silent) bar(false); }
   })();
