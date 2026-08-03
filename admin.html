@@ -617,7 +617,7 @@ function staffColor(id){const i=cfg.staff.findIndex(x=>x.id===id);return i<0?'#7
    URL có kèm số phiên bản dữ liệu (v): ai vừa sửa gì là v đổi → cache cũ bị bỏ ngay.
    Ghi → đi thẳng, không bao giờ cache. */
 const PROXY='/api/gs';
-const READS=new Set(['adminBoot','adminLogin','adminDay','adminRange','adminServices','adminGallery','adminSlots','version']);
+const READS=new Set(['adminLogin','adminDay','adminRange','adminServices','adminGallery','adminSlots','version']);
 let proxyOK=true;
 
 /* ================= HOIST: bắn cuộc gọi chậm nhất NGAY LẬP TỨC =================
@@ -632,14 +632,23 @@ let proxyOK=true;
    lý mà trình duyệt có thể bắt đầu chuyến đi tới Google. */
 let bootPromise=null;
 (function hoistBoot(){
+  // adminBoot đã bị bỏ: Apps Script gốc không có hành động đó ("Okänd åtgärd").
+  // Thay bằng ba hành động mà backend vốn CÓ, bắn SONG SONG ngay từ đầu trang:
+  // adminLogin (cấu hình) + version (mốc dữ liệu) + adminDay (lịch hôm nay).
+  // Song song nên vẫn nhanh; không còn chuỗi gọi nối đuôi nhau.
   let k=null;
   try{ k=JSON.parse(localStorage.getItem('nb_key')||'null'); }catch(e){}
   if(!k) return;
   const d=todayISO();
-  bootPromise=fetch(`${PROXY}?action=adminBoot&key=${encodeURIComponent(k)}&date=${d}`)
-    .then(r=>r.ok?r.json():null)
-    .then(j=>(j&&j.success)?{data:j.data,date:d}:null)
-    .catch(()=>null);
+  const K=encodeURIComponent(k);
+  bootPromise=Promise.all([
+    fetch(`${PROXY}?action=adminLogin&key=${K}`).then(r=>r.ok?r.json():null).catch(()=>null),
+    fetch(`${PROXY}?action=version`).then(r=>r.ok?r.json():null).catch(()=>null),
+    fetch(`${PROXY}?action=adminDay&key=${K}&date=${d}`).then(r=>r.ok?r.json():null).catch(()=>null)
+  ]).then(([lg,ver,dy])=>{
+    if(!lg||!lg.success) return null;   // sai mật khẩu / lỗi → để đường chậm xử lý
+    return {data:{cfg:lg.data, v:(ver&&ver.success)?ver.data.v:null, day:(dy&&dy.success)?dy.data:null}, date:d};
+  }).catch(()=>null);
 })();
 
 let api=async function(action,p={}){
@@ -721,7 +730,13 @@ async function getBoot(d){
     const pre=await bootPromise; bootPromise=null;
     if(pre && pre.date===d) return pre.data;
   }
-  return await api('adminBoot',{date:d});
+  // Ba hành động có sẵn trong Apps Script, gọi SONG SONG (không nối đuôi).
+  const [cfg2,ver,dy]=await Promise.all([
+    api('adminLogin'),
+    api('version').catch(()=>({v:null})),
+    api('adminDay',{date:d})
+  ]);
+  return {cfg:cfg2, v:ver?ver.v:null, day:dy};
 }
 
 /* Làm mới ngầm — không bao giờ chặn, không bao giờ đá người dùng ra ngoài. */
