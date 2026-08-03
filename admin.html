@@ -1038,7 +1038,34 @@ function paintDay(){
 
 /* ================= SCHEMA 15 MIN + DRA & SLÄPP ================= */
 const ROW=22;                       // px cho mỗi ô
-const toMin=t=>{const[a,b]=String(t).split(':').map(Number);return a*60+b;};
+const toMin=t=>{ const m=parseMin(t); return m==null?0:m; };   // an toàn cho phép tính vị trí lưới — không bao giờ NaN
+/* Đọc MỌI kiểu giờ (HH:MM, HH:MM:SS, ISO ...T10:00, phân số ngày kiểu Google Sheets 0.5=12:00) → phút trong ngày. */
+function parseMin(v){
+  if(v==null||v==='') return null;
+  if(typeof v==='number' && isFinite(v)){
+    if(v>0 && v<1)     return Math.round(v*1440);   // phân số của 1 ngày
+    if(v>=0 && v<=1440) return Math.round(v);        // đã là phút
+  }
+  const s=String(v).trim();
+  let m=s.match(/T(\d{1,2}):(\d{2})/) || s.match(/(\d{1,2}):(\d{2})/);
+  if(m) return (+m[1])*60 + (+m[2]);
+  const f=parseFloat(s.replace(',','.'));
+  if(isFinite(f) && f>0 && f<1) return Math.round(f*1440);
+  return null;
+}
+/* Chuẩn hoá cho <input type="time"> — chỉ nhận "HH:MM", sai định dạng sẽ ném lỗi. */
+function toTimeInput(v){ const m=parseMin(v); return m==null?'':toHM(Math.max(0,Math.min(1439,m))); }
+/* Chuẩn hoá cho <input type="date"> — chỉ nhận "YYYY-MM-DD". */
+function toDateInput(v){
+  if(!v) return '';
+  const s=String(v).trim();
+  let m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(m) return m[1]+'-'+m[2]+'-'+m[3];
+  m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if(m) return m[3]+'-'+String(m[2]).padStart(2,'0')+'-'+String(m[1]).padStart(2,'0');
+  const d=new Date(s); if(!isNaN(d.getTime())) return iso(d);
+  return '';
+}
 const toHM=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
 
 function dayHours(){
@@ -1264,7 +1291,7 @@ function openBlockEdit(b){
   cfg.staff.forEach(x=>{ const o=document.createElement('option'); o.value=x.id; o.textContent=x.name; st.appendChild(o); });
   st.value=b.staffId;
   $('#ebSub').textContent=`${b.date} · ${b.start}–${b.end}`;
-  $('#ebStart').value=b.start; $('#ebEnd').value=b.end; $('#ebReason').value=b.reason||'';
+  $('#ebStart').value=toTimeInput(b.start); $('#ebEnd').value=toTimeInput(b.end); $('#ebReason').value=b.reason||'';
   $('#emask').classList.add('on');
 }
 $('#ebClose').onclick=()=>$('#emask').classList.remove('on');
@@ -1531,8 +1558,8 @@ function openBooking(b,preset){
   $('#statusWrap').hidden  = !b;
   $('#mSvc').value   = b? b.serviceId : cfg.services[0].id;
   $('#mStaff').value = b? b.staffId : (preset? preset.staffId : 'any');
-  $('#mDate').value  = b? b.date : (preset? preset.date : (view==='day'? date : todayISO()));
-  $('#mTime').value  = b? b.time : (preset? preset.time : '');
+  $('#mDate').value  = toDateInput(b? b.date : (preset? preset.date : (view==='day'? date : todayISO())));
+  $('#mTime').value  = b? toTimeInput(b.time) : (preset? toTimeInput(preset.time) : '');
   $('#mName').value  = b? (b.customer||'') : '';
   $('#mPhone').value = b? (b.phone||'') : '';
   $('#mMail').value  = b? (b.email||'') : '';
@@ -1604,11 +1631,11 @@ $('#blockBtn').onclick=()=>openBlock(null);
 function openBlock(pre){
   fillSelects(); txt();
   $('#bErr').hidden=true;
-  $('#bDate').value   = pre? pre.date : (view==='day'? date : todayISO());
+  $('#bDate').value   = toDateInput(pre? pre.date : (view==='day'? date : todayISO()));
   $('#bDateTo').value = $('#bDate').value;
   $('#bStaff').value  = pre? pre.staffId : (cfg.staff[0] ? cfg.staff[0].id : 'ALLA');
-  $('#bStart').value  = pre? pre.start : '12:00';
-  $('#bEnd').value    = pre? pre.end   : '13:00';
+  $('#bStart').value  = toTimeInput(pre? pre.start : '12:00');
+  $('#bEnd').value    = toTimeInput(pre? pre.end   : '13:00');
   $('#bReason').value = '';
   $('#bmask').classList.add('on');
 }
