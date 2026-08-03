@@ -181,7 +181,7 @@ select{-webkit-appearance:none;appearance:none;
 .vtabs button.on{background:#EFE7E4;color:var(--ink)}
 
 /* DAGSVY: kolumn per tekniker */
-.cols{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));padding-bottom:80px}
+.cols{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));padding-bottom:80px;overflow-x:auto}
 .col{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:var(--shadow)}
 .col h3{display:flex;align-items:center;gap:9px;font-size:14px;margin-bottom:10px}
 .dot{width:9px;height:9px;border-radius:50%;flex:none}
@@ -315,8 +315,8 @@ label{display:block;font-size:12px;font-weight:700;margin-bottom:5px}
       <input type="date" id="datePick" style="width:auto">
       <button class="btn line sm" id="refBtn" title="Rensa cache" data-t="refresh">↻</button>
       <div class="vtabs" id="vtabs">
-        <button id="vList" class="on" data-t="vList">Lista</button>
-        <button id="vCols" data-t="vCols">Per tekniker</button>
+        <button id="vList" data-t="vList">Lista</button>
+        <button id="vCols" class="on" data-t="vCols">Per tekniker</button>
       </div>
     </div>
 
@@ -567,7 +567,7 @@ const store={
 
 const cache={};                    // 'day|2026-07-13' → {v, data}
 const inflight={};                 // chống gọi trùng cùng lúc
-let lang='sv', key='', cfg=null, view='day', dayMode='list', svcData=null, editSvc=null, date=todayISO(), day=null, weekData=null, edit=null;
+let lang='sv', key='', cfg=null, view='day', dayMode='cols', svcData=null, editSvc=null, date=todayISO(), day=null, weekData=null, edit=null;
 
 const $=s=>document.querySelector(s);
 const t=k=>T[lang][k]||T.sv[k]||k;
@@ -751,12 +751,27 @@ $('#loginBtn').onclick=async()=>{
 };$('#key').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#loginBtn').click(); });
 $('#logout').onclick=()=>{ store.del('nb_key'); store.del('nb_cfg'); store.del('nb_day'); location.reload(); };
 
-// Đăng nhập tự động: có mật khẩu lưu là vào thẳng, không hiện màn hình đăng nhập.
+// Đăng nhập tự động.
+// 1) Ưu tiên mật khẩu nhét sẵn trong link: nosnailshanden.se/datlich.html#key=MATKHAU
+//    → lưu bookmark đó, bấm phát vào thẳng. Người gõ link trần (không có #key)
+//    vẫn phải nhập mật khẩu, nên dữ liệu khách không phơi cho người lạ.
+// 2) Nếu không có trong link thì dùng mật khẩu đã lưu từ lần trước.
 (function(){
-  const k=store.get('nb_key') || sessionStorage.getItem('nb_key');   // đọc cả kiểu cũ
+  let k='';
+  try{
+    const h=new URLSearchParams(location.hash.slice(1));   // đọc phần sau dấu #
+    k=(h.get('key')||'').trim();
+  }catch(e){}
+  if(k){
+    // Xoá #key khỏi thanh địa chỉ ngay để mật khẩu không nằm phơi trên màn hình,
+    // không lọt vào lịch sử. Nó vẫn còn trong bookmark đã lưu.
+    try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){}
+    store.set('nb_key',k);
+  }
+  if(!k) k=store.get('nb_key') || sessionStorage.getItem('nb_key');   // đọc cả kiểu cũ
   if(!k) return;
   $('#key').value=k;
-  $('#loginBtn').click();   // có ảnh chụp → đi đường nhanh, vào tức thì
+  $('#loginBtn').click();   // vào tức thì
 })();
 
 /* ---------- vy + navigering ---------- */
@@ -928,6 +943,9 @@ function paintDay(){
   paintList();
 
   const box=$('#cols'); box.innerHTML='';
+  // Mỗi thợ một cột, luôn nằm ngang. 3 thợ → 3 cột; tự đúng nếu thêm/bớt thợ.
+  // minmax(220px,1fr): màn rộng thì các cột chia đều, màn hẹp thì kéo ngang được.
+  box.style.gridTemplateColumns='repeat('+Math.max(cfg.staff.length,1)+',minmax(220px,1fr))';
   const salonBlocks=day.blocks.filter(b=>b.staffId.toUpperCase()==='ALLA');
   cfg.staff.forEach((st,i)=>{
     const mine=day.bookings.filter(b=>b.staffId===st.id && b.status.toLowerCase()!=='avbokad');
